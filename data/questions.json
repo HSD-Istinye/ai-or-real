@@ -1,0 +1,86 @@
+[
+  {
+    "id": "Q001",
+    "title": "Stüdyo Portresi: Hangisi Yapay Zekâ?",
+    "category": "İnsan Portresi",
+    "difficulty": "medium",
+    "description": "İki stüdyo portresini dikkatle inceleyin. Göz bebeklerindeki yansımalara, saç tellerinin arka planla kesişimine ve cilt dokusuna odaklanın.",
+    "correctAnswer": "ai",
+    "options": [
+      {
+        "id": "real",
+        "imageUrl": "/images/questions/Q001/real.webp",
+        "label": "Görsel A",
+        "sourceDescription": "Doğal stüdyo aydınlatmalı gerçek fotoğraf."
+      },
+      {
+        "id": "ai",
+        "imageUrl": "/images/questions/Q001/ai.webp",
+        "label": "Görsel B",
+        "sourceDescription": "Yüksek çözünürlüklü difüzyon modeli ile üretilmiş yapay portre."
+      }
+    ],
+    "aiClues": [
+      "Göz bebeklerindeki ışık yansıması (catchlight) iki gözde birbiriyle eşleşmiyor.",
+      "Saç telleri arka plan ile doğal olmayan şekilde kaynaşmış ve bazı kısımlarda bulanıklaşıyor.",
+      "Cilt dokusunda gözeneklerin yapay ve aşırı pürüzsüz (airbrush) bir görünümü var."
+    ],
+    "explanation": "Yapay zekâ modelleri portrelerde göz bebeği yansımalarında ve kulak/küpe detaylarında sıkça geometrik tutarsızlıklar üretir. Gerçek fotoğrafta ise stüdyo softbox yansıması her iki gözde de kusursuz bir optik açıyla görülür."
+  },
+  {
+    "id": "Q002",
+    "title": "Vahşi Doğa: Hangisi Gerçek Değil?",
+    "category": "Doğa & Hayvanlar",
+    "difficulty": "hard",
+    "description": "Karlı dağ yamaçlarında iki vahşi kurt/tilki fotoğrafı. Kürk desenlerini, bıyık uçlarını ve karda oluşan gölgeleri analiz edin.",
+    "correctAnswer": "ai",
+    "options": [
+      {
+        "id": "real",
+        "imageUrl": "/images/questions/Q002/real.webp",
+        "label": "Görsel A",
+        "sourceDescription": "Doğa fotoğrafçısı tarafından çekilmiş gerçek yaban hayat karesi."
+      },
+      {
+        "id": "ai",
+        "imageUrl": "/images/questions/Q002/ai.webp",
+        "label": "Görsel B",
+        "sourceDescription": "AI modeli tarafından sentezlenmiş kış manzarası."
+      }
+    ],
+    "aiClues": [
+      "Bıyıkların uçları havada aniden kesiliyor veya çatallaşıyor.",
+      "Kar taneleri ve arka plandaki çam iğneleri tekrar eden fraktal desenler barındırıyor.",
+      "Gözlerin rengi ve parlaklığı doğadaki gerçek bir canlı için fazla doygun ve sentetik."
+    ],
+    "explanation": "Yapay zekâ hayvan kürklerinin karmaşık mikro yapılarını üretirken mükemmel görünen fakat doğada rastlanmayan simetrik tüy demetleri oluşturur. Gerçek fotoğrafta ise düzensiz ve rüzgarın etkilediği tüy yapıları mevcuttur."
+  },
+  {
+    "id": "Q003",
+    "title": "Gece Şehri: Hangisi AI Sentezi?",
+    "category": "Mimari & Şehir",
+    "difficulty": "easy",
+    "description": "Yağmurlu bir gecede neon ışıklı metropol caddesi. Tabelalardaki yazılara, binaların dikey perspektif hatlarına ve ıslak asfalttaki yansımalara dikkat edin.",
+    "correctAnswer": "ai",
+    "options": [
+      {
+        "id": "real",
+        "imageUrl": "/images/questions/Q003/real.webp",
+        "label": "Görsel A",
+        "sourceDescription": "Metropol gece fotoğrafı."
+      },
+      {
+        "id": "ai",
+        "imageUrl": "/images/questions/Q003/ai.webp",
+        "label": "Görsel B",
+        "sourceDescription": "Siberpunk tarzında yapay zeka ile üretilmiş şehir tasarımı."
+      }
+    ],
+    "aiClues": [
+      "Neon tabelalardaki harfler okunabilir bir dilde değil, uydurma sembollerden oluşuyor.",
+      "Gökdelen pencerelerinin dizilimi yukarı doğru çıktıkça eğriliyor ve kayıyor.",
+      "Yol çizgileri ve ıslak asfalttaki yansımalar fiziksel ışık kaynağıyla tam örtüşmüyor."
+    ],
+    "explanation": "Yapay zekâ modelleri görsel içindeki metinleri ve alfabeyi doğru oluşturmakta en çok zorlanan araçlardır. Tabelalarda anlamsız yazılar ve perspektif kırılmaları en belirgin AI imzasıdır."
+  }
+]
