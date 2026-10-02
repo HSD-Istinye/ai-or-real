@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { GameSummary } from '@/types/game';
+import NameEntry from '@/components/leaderboard/NameEntry';
 
 export default function ResultPage() {
   const router = useRouter();
@@ -144,6 +145,9 @@ export default function ResultPage() {
           {summary.rankDescription}
         </p>
       </div>
+
+      {/* Leaderboard: isim girişi → sunucuya kayıt → sıralama */}
+      <NameEntry summary={summary} />
 
       {/* Stats Cards Grid */}
       <div

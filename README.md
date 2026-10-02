@@ -419,3 +419,97 @@ npm run build
 # Üretim sürümünü çalıştırın
 npm run start
 ```
+
+---
+
+## 🏆 Backend & Leaderboard
+
+Backend ayrı bir sunucu değildir: Next.js **route handler**'ları (`app/api/**/route.ts`) API görevi görür, veriler **SQLite** (`better-sqlite3`) ile tek bir dosyada (`data/game.db`) tutulur. Her şey tek laptopta, internetsiz çalışır.
+
+```text
+LAPTOP (localhost:3000)
+┌──────────────────────── Next.js (tek süreç) ────────────────────────┐
+│  /  /game  /result     → oyun                                       │
+│  /leaderboard          → TV / büyük ekran (3 sn'de bir yenilenir)   │
+│  /admin                → gizle, günü sıfırla, CSV, soru istatistiği │
+│                                                                     │
+│  /api/runs  /api/leaderboard  /api/stats  /api/health  /api/admin/* │
+│                 │                                                   │
+│        lib/server/*  ──►  data/game.db (SQLite)                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### İlk kurulum
+
+```bash
+npm install                 # better-sqlite3 dahil tüm paketler
+copy .env.example .env.local   # (macOS/Linux: cp) — ADMIN_TOKEN'ı değiştirin
+npm run dev                 # http://localhost:3000
+```
+
+`data/game.db` ilk API isteğinde otomatik oluşur. Node.js **20 veya 22 LTS** önerilir.
+
+### Komutlar
+
+| Komut | Ne yapar |
+|---|---|
+| `npm run dev` | Geliştirme sunucusu |
+| `npm run build` + `npm run start` | Stant için hızlı (production) sürüm |
+| `npm run seed` | 200 sahte oyun ekler (`npm run seed -- 50` → 50 tane) |
+| `npm run seed -- --clear` | Sadece sahte kayıtları siler |
+| `npm run backup` | `data/backups/` altına anlık yedek (`npm run backup -- E:\yedek` → USB) |
+
+### Dosyalar
+
+```text
+types/api.ts                  ← API sözleşmesi (istemci + sunucu ortak tipler)
+lib/server/
+  schema.sql                  ← tablolar: run, answer
+  db.ts                       ← tek SQLite bağlantısı (lazy, WAL modu)
+  validate.ts                 ← gelen isteği doğrulama, nick normalize
+  blocklist.ts                ← uygunsuz isim filtresi (kelime + kök kontrolü)
+  runs.ts                     ← skor hesaplama, kayıt, sıralama, istatistik, admin
+  http.ts                     ← hata cevapları, admin token kontrolü
+lib/net/
+  api.ts                      ← fetch sarmalayıcıları (5 sn timeout)
+  submitRun.ts                ← offline kuyruk (localStorage) + yeniden gönderim
+  uuid.ts                     ← oyun kimliği üretimi
+components/net/QueueFlusher.tsx      ← layout'ta; bekleyen skorları 10 sn'de bir gönderir
+components/leaderboard/NameEntry.tsx ← sonuç ekranında isim girişi + sıralama kartı
+app/api/…                     ← endpoint'ler
+app/leaderboard/page.tsx      ← TV tablosu (?scope=alltime&limit=15&tv=1)
+app/admin/page.tsx            ← admin paneli
+scripts/seed.mjs, backup.mjs
+```
+
+### API sözleşmesi
+
+```text
+POST /api/runs
+  { id: "<uuid>", nick: "Ali Y.", mode: "solo", device: "stand-1", createdAt: "<ISO>",
+    answers: [ { questionId: "Q001", choice: "ai", reactionMs: 1840, foul: null }, … ] }
+  → 201 { score, correct, total, avgMs, rankToday, percentile, beatenToday, totalToday, … }
+  → 200 aynı id tekrar gelirse (yeni kayıt açılmaz)
+  → 400 { ok:false, error } geçersiz istek
+
+GET /api/leaderboard?scope=today|alltime&limit=10&mode=solo
+  → { rows: [ { rank, nick, score, correct, total, avgMs, … } ], totalPlayers }
+
+GET /api/stats?scope=today&score=1450
+  → { total, percentile, median, best, avgAccuracy, questions: [ { questionId, attempts, correctRate, avgMs } ] }
+
+GET  /api/health                       → { ok, runs }
+GET  /api/admin/runs        [X-Admin-Token]
+POST /api/admin/hide        [X-Admin-Token]  { id, hidden?: boolean }
+POST /api/admin/reset-day   [X-Admin-Token]  bugünkü kayıtları gizler (silmez)
+GET  /api/admin/export?token=…              CSV
+```
+
+### Kurallar
+
+- **Skoru sunucu hesaplar.** İstemci sadece cevapları gönderir; sunucu `questions.json` + `lib/game/checkAnswer.ts` ile puanı yeniden hesaplar. Puan formülü tek yerde (`lib/game/calculateScore.ts`) durur — değiştirince hem oyun hem tablo güncellenir.
+- **Sıralama:** `score DESC`, eşitlikte doğru cevapların ortalama süresi (`avg_ms ASC`). Aynı isim (büyük/küçük harf fark etmez, `nick_key`) tabloda en iyi skoruyla **bir kez** görünür; `???` (isimsiz) oyuncular ayrı sayılır ve tabloda "İsimsiz" yazar.
+- **"Bugün"** sunucu bilgisayarının yerel saatine göre gece yarısından itibaren.
+- **Offline dayanıklılık:** skor önce `localStorage`'a yazılır, sonra gönderilir. Sunucu kapalıysa oyuncu "bağlantı gelince eklenecek" mesajı görür; `QueueFlusher` arka planda tekrar dener. Aynı `id` sayesinde mükerrer kayıt oluşmaz.
+- **İsim:** uzunluk sınırı yok (sadece 40 karakterlik teknik üst sınır); harf, rakam, boşluk ve `. _ - '` kullanılabilir, yazıldığı gibi saklanır. Uygunsuz isimde oyuncuya "Bu isim kullanılamaz" denir (`lib/server/blocklist.ts`); filtreden kaçanlar `/admin`'den gizlenir. 30 sn içinde isim girilmezse `???` olarak kaydedilir (`NameEntry.tsx` → `AUTO_SUBMIT_MS`).
+- `answer` tablosundaki `foul` alanı ve `reactionMs` refleks modu için hazır; o aşamada şema değişmez.

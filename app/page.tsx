@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowDown, ArrowRight, BadgeCheck, Eye, Sparkles, Timer } from 'lucide-react';
+import { ArrowDown, ArrowRight, BadgeCheck, Eye, Sparkles, Timer, Trophy } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
 const features = [
@@ -52,6 +52,9 @@ export default function HomePage() {
               </Button>
             </Link>
             <span className="home-time-note"><Timer size={15} /> 3 tur · Ücretsiz</span>
+            <Link href="/leaderboard" className="home-how-link" style={{ marginTop: 0 }}>
+              <Trophy size={15} /> Liderlik tablosu
+            </Link>
           </div>
           <a className="home-how-link" href="#nasil-oynanir">
             Nasıl oynanır? <ArrowDown size={15} />

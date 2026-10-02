@@ -8,6 +8,7 @@ import { AnswerFeedback } from '@/components/game/AnswerFeedback';
 import { createGame } from '@/lib/game/createGame';
 import { checkAnswer } from '@/lib/game/checkAnswer';
 import { generateGameSummary } from '@/lib/game/calculateScore';
+import { newId } from '@/lib/net/uuid';
 import { GameState, PlayerAnswer } from '@/types/game';
 import { OptionType } from '@/types/question';
 
@@ -164,7 +165,11 @@ export default function GamePage() {
   const handleNext = () => {
     if (isLastQuestion) {
       // Calculate final summary and persist in sessionStorage
-      const summary = generateGameSummary(gameState);
+      const summary = {
+        ...generateGameSummary(gameState),
+        runId: newId(), // leaderboard kaydı için — sonuç ekranında gönderilir
+        playedAt: new Date().toISOString(),
+      };
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('spot_the_ai_result', JSON.stringify(summary));
       }

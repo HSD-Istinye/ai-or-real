@@ -32,4 +32,8 @@ export interface GameSummary {
   rankBadge: string;
   rankDescription: string;
   answers: PlayerAnswer[];
+  /** Leaderboard kaydı için benzersiz oyun kimliği (UUID). Tekrar gönderimde aynı kalır. */
+  runId?: string;
+  /** Oyunun bittiği an (ISO 8601). */
+  playedAt?: string;
 }
