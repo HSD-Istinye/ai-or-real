@@ -21,11 +21,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   const getDifficultyBadge = (diff: Question['difficulty']) => {
     switch (diff) {
       case 'easy':
-        return { label: 'Kolay', color: 'var(--accent-green)', bg: 'rgba(16, 185, 129, 0.15)' };
+        return { label: 'Kolay', color: 'var(--accent-green)', bg: 'rgba(91, 150, 124, 0.13)' };
       case 'medium':
-        return { label: 'Orta', color: 'var(--accent-cyan)', bg: 'rgba(0, 240, 255, 0.15)' };
+        return { label: 'Orta', color: 'var(--accent-cyan)', bg: 'rgba(113, 141, 188, 0.13)' };
       case 'hard':
-        return { label: 'Zor', color: 'var(--accent-purple)', bg: 'rgba(168, 85, 247, 0.15)' };
+        return { label: 'Zor', color: 'var(--accent-purple)', bg: 'rgba(141, 123, 180, 0.13)' };
     }
   };
 
@@ -33,7 +33,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
   return (
     <div
-      className="glass-panel"
+      className="glass-panel question-panel"
       style={{
         width: '100%',
         padding: '24px',

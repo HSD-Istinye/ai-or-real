@@ -34,7 +34,7 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
   if (isRevealed) {
     if (isAi) {
       borderColor = 'var(--accent-purple)';
-      glowStyle = '0 0 20px rgba(168, 85, 247, 0.4)';
+      glowStyle = '0 0 20px rgba(141, 123, 180, 0.22)';
     } else {
       borderColor = 'var(--accent-green)';
       glowStyle = '0 0 20px rgba(16, 185, 129, 0.4)';
@@ -56,6 +56,7 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
 
   return (
     <div
+      className="image-option"
       onClick={() => {
         if (!disabled && !isRevealed) {
           onSelect();
@@ -77,6 +78,7 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
     >
       {/* Option Tag Badge (A / B) */}
       <div
+        className={`image-option-label${isSelected ? ' image-option-label-selected' : ''}`}
         style={{
           position: 'absolute',
           top: '14px',
@@ -113,11 +115,11 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
             gap: '6px',
             padding: '6px 14px',
             borderRadius: '999px',
-            background: isAi ? 'rgba(168, 85, 247, 0.9)' : 'rgba(16, 185, 129, 0.9)',
+            background: isAi ? 'rgba(141, 123, 180, 0.94)' : 'rgba(91, 150, 124, 0.94)',
             color: '#ffffff',
             boxShadow: isAi
-              ? '0 0 16px rgba(168, 85, 247, 0.6)'
-              : '0 0 16px rgba(16, 185, 129, 0.6)',
+              ? 'none'
+              : 'none',
             fontSize: '0.85rem',
             fontWeight: 800,
             textTransform: 'uppercase',
@@ -133,42 +135,6 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
             <>
               <Camera size={16} />
               <span>Gerçek Fotoğraf</span>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Selected Indicator Icon on Reveal */}
-      {isRevealed && isSelected && (
-        <div
-          className="animate-pop-in"
-          style={{
-            position: 'absolute',
-            bottom: '16px',
-            left: '16px',
-            zIndex: 10,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 14px',
-            borderRadius: 'var(--radius-sm)',
-            background: isCorrectChoice
-              ? 'rgba(16, 185, 129, 0.95)'
-              : 'rgba(239, 68, 68, 0.95)',
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: '0.9rem',
-          }}
-        >
-          {isCorrectChoice ? (
-            <>
-              <CheckCircle2 size={18} />
-              <span>Senin Seçimin (Doğru!)</span>
-            </>
-          ) : (
-            <>
-              <XCircle size={18} />
-              <span>Senin Seçimin (Yanlış)</span>
             </>
           )}
         </div>
@@ -197,6 +163,42 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
           }}
         />
 
+        {/* Selected Indicator Icon on Reveal */}
+        {isRevealed && isSelected && (
+          <div
+            className="animate-pop-in"
+            style={{
+              position: 'absolute',
+              bottom: '16px',
+              left: '16px',
+              zIndex: 10,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              borderRadius: 'var(--radius-sm)',
+              background: isCorrectChoice
+                ? 'rgba(91, 150, 124, 0.96)'
+                : 'rgba(189, 120, 148, 0.96)',
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+            }}
+          >
+            {isCorrectChoice ? (
+              <>
+                <CheckCircle2 size={18} />
+                <span>Senin Seçimin (Doğru!)</span>
+              </>
+            ) : (
+              <>
+                <XCircle size={18} />
+                <span>Senin Seçimin (Yanlış)</span>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Hover overlay hint */}
         {!isRevealed && !disabled && (
           <div
@@ -214,7 +216,7 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
       {/* Bottom Description after Reveal */}
       {isRevealed && option.sourceDescription && (
         <div
-          className="animate-slide-up"
+          className="animate-slide-up image-option-description"
           style={{
             padding: '12px 16px',
             borderTop: '1px solid rgba(255, 255, 255, 0.08)',

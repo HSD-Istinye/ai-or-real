@@ -10,7 +10,7 @@ interface ScoreDisplayProps {
 
 export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ score, streak }) => {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <div className="game-score" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
       {/* Streak Badge */}
       {streak > 0 && (
         <div

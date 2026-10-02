@@ -11,7 +11,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ current, total }) => {
   const percentage = Math.min(Math.round((current / total) * 100), 100);
 
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+    <div className="game-progress" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '6px' }}>
       <div
         style={{
           display: 'flex',

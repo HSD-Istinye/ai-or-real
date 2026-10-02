@@ -23,6 +23,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
 }) => {
   return (
     <header
+      className="game-header"
       style={{
         width: '100%',
         display: 'flex',

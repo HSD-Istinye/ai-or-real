@@ -23,7 +23,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = ({
 }) => {
   return (
     <div
-      className="glass-panel animate-slide-up"
+      className="glass-panel animate-slide-up answer-feedback"
       style={{
         width: '100%',
         padding: '24px',
@@ -89,7 +89,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = ({
                 color: isCorrect ? 'var(--accent-green)' : 'var(--accent-red)',
               }}
             >
-              {isCorrect ? 'Harika! Doğru Tespit 🎯' : 'Tüh! Yanlış Seçim 🤖'}
+              {isCorrect ? 'Harika! Doğru tespit' : 'Bu kez olmadı'}
             </h3>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
               {isCorrect

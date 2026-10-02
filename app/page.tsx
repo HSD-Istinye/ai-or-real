@@ -1,187 +1,101 @@
 'use client';
 
-import React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { Bot, Play, Sparkles, Target, Zap, ShieldCheck } from 'lucide-react';
+import { ArrowDown, ArrowRight, BadgeCheck, Eye, Sparkles, Timer } from 'lucide-react';
 import Button from '@/components/ui/Button';
+
+const features = [
+  {
+    icon: Eye,
+    eyebrow: 'GÖZLEM',
+    title: 'Detaylara dikkat et',
+    description: 'Işık, doku ve perspektif… Cevap çoğu zaman küçük bir ayrıntıda saklı.',
+  },
+  {
+    icon: Timer,
+    eyebrow: 'TEMPO',
+    title: 'Kendi ritminde oyna',
+    description: 'Her turda iki görseli incele, kararını ver ve bir sonraki soruya geç.',
+  },
+  {
+    icon: BadgeCheck,
+    eyebrow: 'SONUÇ',
+    title: 'Dedektifliğini keşfet',
+    description: 'Puanını, doğru cevaplarını ve oyun sonunda kazandığın unvanı gör.',
+  },
+];
 
 export default function HomePage() {
   return (
-    <div
-      style={{
-        maxWidth: '900px',
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-        gap: '40px',
-        padding: '40px 20px',
-      }}
-    >
-      {/* Top Floating Badge */}
-      <div
-        className="animate-float"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '8px 18px',
-          borderRadius: '999px',
-          backgroundColor: 'rgba(0, 240, 255, 0.08)',
-          border: '1px solid rgba(0, 240, 255, 0.25)',
-          color: 'var(--accent-cyan)',
-          fontSize: '0.875rem',
-          fontWeight: 600,
-          boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
-        }}
-      >
-        <Sparkles size={16} />
-        <span>Görsel Algı & Turing Mücadelesi</span>
-      </div>
-
-      {/* Hero Title & Subtitle */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '750px' }}>
-        <h1
-          style={{
-            fontSize: 'clamp(2.5rem, 6vw, 4.2rem)',
-            fontWeight: 800,
-            lineHeight: 1.1,
-            letterSpacing: '-0.02em',
-          }}
-        >
-          Hangisi Gerçek, Hangisi{' '}
-          <span className="gradient-text-cyan">Yapay Zekâ?</span>
-        </h1>
-
-        <p
-          style={{
-            fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.6,
-            fontWeight: 400,
-          }}
-        >
-          Yapay zekâ modelleri gerçeğe o kadar yaklaştı ki ayırt etmek artık bir sanat.
-          İki fotoğraf arasındaki ince hataları yakala, gözlem yeteneğini test et!
-        </p>
-      </div>
-
-      {/* CTA Button */}
-      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <Link href="/game" style={{ textDecoration: 'none' }}>
-          <Button
-            variant="primary"
-            size="lg"
-            leftIcon={<Play size={22} fill="currentColor" />}
-            style={{ fontSize: '1.2rem', padding: '16px 40px' }}
-          >
-            Meydan Okumaya Başla
-          </Button>
+    <div className="home-page">
+      <header className="home-nav">
+        <Link href="/" className="home-brand" aria-label="Spot the AI ana sayfa">
+          <span className="home-brand-mark"><Sparkles size={19} /></span>
+          <span>spot the <strong>ai</strong></span>
         </Link>
-      </div>
+        <span className="home-nav-note">Görsel algı oyunu</span>
+      </header>
 
-      {/* Feature Highlights Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '20px',
-          width: '100%',
-          marginTop: '20px',
-          textAlign: 'left',
-        }}
-      >
-        {/* Card 1 */}
-        <div className="glass-panel glass-panel-interactive" style={{ padding: '24px' }}>
-          <div
-            style={{
-              width: '46px',
-              height: '46px',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(0, 240, 255, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--accent-cyan)',
-              marginBottom: '16px',
-            }}
-          >
-            <Target size={24} />
-          </div>
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '8px' }}>
-            İnce Kusurları Yakala
-          </h3>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-            Göz bebeklerindeki yansımalar, bükülen perspektif çizgileri ve saç sınırları en büyük
-            ipuçlarındır.
+      <section className="home-hero" aria-labelledby="home-title">
+        <div className="home-hero-copy">
+          <div className="home-kicker"><span /> GÖZÜNE GÜVENİYOR MUSUN?</div>
+          <h1 id="home-title">Gerçeği bul.<br /><span>Yapay zekâyı yakala.</span></h1>
+          <p className="home-intro">
+            İki görsel, tek doğru cevap. Ayrıntılara bak, sezgini kullan ve hangisinin yapay zekâ
+            tarafından üretildiğini bul.
           </p>
+          <div className="home-actions">
+            <Link href="/game" className="home-play-link">
+              <Button variant="primary" size="lg" rightIcon={<ArrowRight size={19} />}>
+                Oyuna başla
+              </Button>
+            </Link>
+            <span className="home-time-note"><Timer size={15} /> 3 tur · Ücretsiz</span>
+          </div>
+          <a className="home-how-link" href="#nasil-oynanir">
+            Nasıl oynanır? <ArrowDown size={15} />
+          </a>
         </div>
 
-        {/* Card 2 */}
-        <div className="glass-panel glass-panel-interactive" style={{ padding: '24px' }}>
-          <div
-            style={{
-              width: '46px',
-              height: '46px',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(168, 85, 247, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--accent-purple)',
-              marginBottom: '16px',
-            }}
-          >
-            <Zap size={24} />
+        <div className="home-demo" aria-label="İki görselden hangisinin yapay zekâ tarafından üretildiğini bul">
+          <div className="home-demo-topline">
+            <span><span className="home-live-dot" /> GÖRSEL TESTİ</span>
+            <span>01 / 03</span>
           </div>
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '8px' }}>
-            Seri & Süre Bonusu
-          </h3>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-            Ardı ardına doğru bildikçe puan çarpanın artar. Hızlı kararlar ekstra hız puanı kazandırır.
-          </p>
-        </div>
-
-        {/* Card 3 */}
-        <div className="glass-panel glass-panel-interactive" style={{ padding: '24px' }}>
-          <div
-            style={{
-              width: '46px',
-              height: '46px',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(16, 185, 129, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--accent-green)',
-              marginBottom: '16px',
-            }}
-          >
-            <ShieldCheck size={24} />
+          <h2>Hangisi yapay zekâ?</h2>
+          <div className="home-demo-images">
+            <div className="home-demo-image">
+              <Image src="/images/questions/Q001/real.webp" alt="Karşılaştırma için portre fotoğrafı A" fill priority sizes="(max-width: 760px) 45vw, 260px" />
+              <span className="home-image-label">A</span>
+            </div>
+            <div className="home-demo-image">
+              <Image src="/images/questions/Q001/ai.webp" alt="Karşılaştırma için portre fotoğrafı B" fill priority sizes="(max-width: 760px) 45vw, 260px" />
+              <span className="home-image-label">B</span>
+            </div>
           </div>
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '8px' }}>
-            Dedektif Unvanı Kazan
-          </h3>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-            Oyun sonunda doğruluk oranına göre özel siber dedektiflik rozetlerini ve unvanlarını topla.
-          </p>
+          <div className="home-demo-hint"><Sparkles size={15} /> Oyunda birini seç, cevabı hemen öğren.</div>
+          <div className="home-demo-stamp">BİR BAKIŞTA<br /><strong>ANLAŞILMAZ.</strong></div>
         </div>
-      </div>
+      </section>
 
-      {/* Footer */}
-      <footer
-        style={{
-          marginTop: '40px',
-          fontSize: '0.85rem',
-          color: 'var(--text-muted)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-        }}
-      >
-        <Bot size={16} />
-        <span>Spot the AI &bull; Yapay Zekâ Görsel Algılama Simülasyonu</span>
+      <section className="home-features" id="nasil-oynanir" aria-label="Oyun özellikleri">
+        {features.map(({ icon: Icon, eyebrow, title, description }, index) => (
+          <article className="home-feature" key={eyebrow}>
+            <div className="home-feature-head">
+              <span className="home-feature-icon"><Icon size={19} /></span>
+              <span className="home-feature-number">0{index + 1}</span>
+            </div>
+            <span className="home-feature-eyebrow">{eyebrow}</span>
+            <h3>{title}</h3>
+            <p>{description}</p>
+          </article>
+        ))}
+      </section>
+
+      <footer className="home-footer">
+        <span>SPOT THE AI</span>
+        <span>İnsan gözü mü, yapay zekâ mı?</span>
       </footer>
     </div>
   );
