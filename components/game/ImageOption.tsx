@@ -12,7 +12,14 @@ interface ImageOptionProps {
   isRevealed: boolean;
   targetAnswer: OptionType; // Which one was the correct answer (usually 'ai')
   disabled: boolean;
-  onSelect: () => void;
+  /** Basılma anının zaman damgasıyla çağrılır (event.timeStamp) — süre ölçümü için. */
+  onSelect: (eventTimeStamp: number) => void;
+  /** Klavye kısayolu ipucu, ör. "←" / "→" */
+  keyHint?: string;
+  /** Görselin en fazla yüksekliği (ör. ekrana sığması için) */
+  maxImageHeight?: string;
+  /** false → cevaptan sonra alt açıklama gösterilmez (süreli modda düzen kaymasın) */
+  showSourceDescription?: boolean;
 }
 
 export const ImageOption: React.FC<ImageOptionProps> = ({
@@ -23,6 +30,9 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
   targetAnswer,
   disabled,
   onSelect,
+  keyHint,
+  maxImageHeight,
+  showSourceDescription = true,
 }) => {
   const isAi = option.id === 'ai';
   const isCorrectChoice = option.id === targetAnswer;
@@ -57,9 +67,11 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
   return (
     <div
       className="image-option"
-      onClick={() => {
+      // click yerine pointerdown: fare BASILDIĞI an sayılır (click bırakınca tetiklenir, +80–150 ms)
+      onPointerDown={(e) => {
+        if (e.button !== 0) return;
         if (!disabled && !isRevealed) {
-          onSelect();
+          onSelect(e.timeStamp);
         }
       }}
       style={{
@@ -99,6 +111,20 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
         }}
       >
         <span>{label}</span>
+        {keyHint && (
+          <kbd
+            style={{
+              fontFamily: 'inherit',
+              fontSize: '0.8rem',
+              padding: '1px 7px',
+              borderRadius: 6,
+              border: '1px solid currentColor',
+              opacity: 0.85,
+            }}
+          >
+            {keyHint}
+          </kbd>
+        )}
       </div>
 
       {/* Revealed Status Badge */}
@@ -146,6 +172,7 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
           position: 'relative',
           width: '100%',
           aspectRatio: '4 / 3',
+          maxHeight: maxImageHeight,
           overflow: 'hidden',
           backgroundColor: '#0c1322',
         }}
@@ -214,7 +241,7 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
       </div>
 
       {/* Bottom Description after Reveal */}
-      {isRevealed && option.sourceDescription && (
+      {isRevealed && showSourceDescription && option.sourceDescription && (
         <div
           className="animate-slide-up image-option-description"
           style={{

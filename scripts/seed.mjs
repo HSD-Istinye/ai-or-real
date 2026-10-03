@@ -42,12 +42,12 @@ const NAMES = ['Ali', 'Ayşe', 'Mehmet', 'Zeynep', 'Can', 'Elif', 'Emre', 'Selin
   'Ece', 'Kaan', 'İrem', 'Oğuz', 'Şule', 'Barış', 'Gökçe', 'Tuna', 'Büşra', 'Yusuf', 'Melis', 'Arda', 'Nehir'];
 const SURNAMES = ['Y.', 'K.', 'A.', 'Ş.', 'Ö.', 'T.', 'D.', 'Ç.', 'Kaya', 'Demir', 'Çelik', 'Aydın'];
 
-// lib/game/calculateScore.ts ile aynı formül (sahte veri için kopyası)
-function points(correct, ms, streak) {
-  if (!correct) return 0;
-  const mult = Math.min(1 + streak * 0.25, 2.5);
-  const bonus = Math.max(0, Math.round((1 - Math.min(ms, 15000) / 15000) * 50));
-  return Math.round(100 * mult) + bonus;
+// lib/game/rules.ts + calculateScore.ts ile aynı formül (sahte veri için kopyası)
+const LIMIT = { easy: 5000, medium: 6000, hard: 8000 };
+function points(correct, ms, streak, limit) {
+  if (!correct || ms < 400 || ms > limit) return 0;
+  const mult = Math.min(1 + streak * 0.1, 1.5);
+  return Math.round((500 + 500 * (1 - ms / limit)) * mult);
 }
 
 const insertRun = db.prepare(`
@@ -71,8 +71,9 @@ db.transaction(() => {
     const times = [];
     const answers = qs.map((q, idx) => {
       const ok = Math.random() < skill;
-      const ms = Math.round(1200 + Math.random() * 9000);
-      const p = points(ok, ms, streak);
+      const limit = LIMIT[q.difficulty] ?? 6000;
+      const ms = Math.round(900 + Math.random() * (limit - 900));
+      const p = points(ok, ms, streak, limit);
       streak = ok ? streak + 1 : 0;
       maxStreak = Math.max(maxStreak, streak);
       score += p;

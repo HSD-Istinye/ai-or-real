@@ -2,7 +2,7 @@
 
 **AI or Real? (Spot the AI)**, gerçek fotoğrafları yapay zekâ tarafından üretilmiş görsellerden ayırt etmeye çalıştığınız, skorların canlı bir liderlik tablosuna yazıldığı bir web oyunudur. **Tek bir bilgisayarda**, **internet olmadan** çalışır: oyuncular bilgisayarda fare ile oynar, liderlik tablosu aynı bilgisayarda ya da bağlı ikinci bir ekranda canlı görünür.
 
-Her turda yan yana iki görsel gösterilir: biri gerçek, diğeri yapay zekâ ürünü. Oyuncu AI olduğunu düşündüğü görseli seçer, cevabı hemen öğrenir. Doğru ve hızlı cevaplar, art arda doğru bilme serisiyle birlikte daha fazla puan kazandırır. Oyuncu başlamadan önce ismini girer; oyun bitince skoru otomatik kaydedilir ve liderlik tablosunda kendi sırasını görür.
+Her turda kısa bir "Hazır ol…" beklemesinden sonra iki görsel **aynı anda** belirir: biri gerçek, diğeri yapay zekâ ürünü. Oyuncu süre bitmeden AI olanı **fare** ya da **klavye (← / →)** ile seçer. Doğru ve hızlı cevaplar, art arda doğru bilme serisiyle birlikte daha fazla puan kazandırır. Oyuncu başlamadan önce ismini girer; oyun bitince skoru otomatik kaydedilir ve liderlik tablosunda kendi sırasını görür.
 
 ---
 
@@ -15,7 +15,7 @@ Her turda yan yana iki görsel gösterilir: biri gerçek, diğeri yapay zekâ ü
 5. [Proje Yapısı](#-proje-yapısı)
 6. [Oyun Mantığı ve Skor Sistemi](#-oyun-mantığı-ve-skor-sistemi)
 7. [Backend ve Liderlik Tablosu](#-backend-ve-liderlik-tablosu)
-8. [Yol Haritası: Refleks / Süreli Mod](#-yol-haritası-refleks--süreli-mod)
+8. [Yol Haritası](#-yol-haritası)
 9. [Git Çalışma Düzeni](#-git-çalışma-düzeni)
 
 ---
@@ -115,19 +115,19 @@ Ana Sayfa → "Oyuna başla"
     ↓
 İsim ekranı (/start) → isim sunucuda kontrol edilir (uygunsuz isim filtresi)
     ↓
-Oyunu başlat → soruların seçilmesi + A/B konumlarının karıştırılması
+Oyun başlar → sorular seçilir, A/B konumları karıştırılır
     ↓
-┌─► Görsel A  ← oyuncu seçimi →  Görsel B
-│       ↓
-│   Cevap kontrolü → Doğru / Yanlış geri bildirimi + ipuçları
-│       ↓
-│   Skor + seri (streak) güncellenir
-│       ↓
-└── Sonraki soru (son soruya kadar)
+┌─► Hazırlan : görseller arka planda yüklenir
+│   Bekle    : "Hazır ol…" (rastgele 0.8–2 sn) — bu sırada basmak = "Çok erken!", bekleme baştan
+│   Göster   : iki görsel aynı anda belirir, süre çubuğu akar (kolay 5 / orta 6 / zor 8 sn)
+│              oyuncu fare ile görsele basar ya da ← / A (sol), → / L (sağ)
+│   Sonuç    : ✓/✗, süre (ör. 1.21 sn), +puan  →  ~1.8 sn sonra otomatik geçer
+│              (Enter / Boşluk ile beklemeden geçilir)
+└── Sonraki tur (son soruya kadar)
     ↓
 Sonuç ekranı: unvan → skor otomatik kaydedilir → "Bugün 7. sıradasın"
               → liderlik tablosu (oyuncunun satırı "SEN" ile vurgulu)
-              → puan, doğruluk, seri, soru detayları
+              → puan, doğruluk, seri, soru detayları (her sorunun süresi)
     ↓
 "Yeniden Oyna" (aynı isim) · "Yeni Oyuncu" (isim ekranına döner)
 ```
@@ -210,8 +210,9 @@ ai-or-real/
 │           └── export/route.ts   # GET   CSV
 │
 ├── components/
-│   ├── game/                     # GameHeader, QuestionCard, ImageOption,
-│   │                             # AnswerFeedback, ProgressBar, ScoreDisplay
+│   ├── game/                     # GameHeader, QuestionCard, ImageOption, ProgressBar,
+│   │                             # ScoreDisplay, TimerBar (süre çubuğu),
+│   │                             # RoundFeedback (tur sonucu)
 │   ├── leaderboard/
 │   │   ├── LeaderboardTable.tsx  # tablo satırları (ortak)
 │   │   └── RunResult.tsx         # oyun sonu: otomatik kayıt + sıra + tablo
@@ -220,7 +221,8 @@ ai-or-real/
 │
 ├── lib/
 │   ├── game/                     # createGame, selectQuestions, randomizeOptions,
-│   │                             # checkAnswer, calculateScore
+│   │                             # checkAnswer, calculateScore,
+│   │                             # rules.ts (süre/puan kuralları), timing.ts (ölçüm)
 │   ├── net/                      # api.ts, submitRun.ts (offline kuyruk), uuid.ts
 │   ├── player.ts                 # oyuncu ismi (sessionStorage)
 │   └── server/                   # db.ts, schema.sql, validate.ts, blocklist.ts,
@@ -272,18 +274,40 @@ Soru formatı:
 }
 ```
 
-### Skor (şu anki sürüm — `lib/game/calculateScore.ts`)
+### Süreli mod ve skor
 
-| Durum | Puan |
+Tüm sayılar tek dosyada: **`lib/game/rules.ts`**. Hem oyun hem sunucu bu dosyayı kullanır.
+
+| Kural | Değer |
 |---|---|
-| Doğru cevap | **100 × seri çarpanı + hız bonusu** |
-| Seri çarpanı | 1× → 1.25× → 1.5× … en fazla **2.5×** (art arda her doğru +0.25) |
-| Hız bonusu | 15 sn içinde cevap verirsen **0–50** puan (ne kadar hızlı, o kadar çok) |
-| Yanlış cevap | 0 puan, seri sıfırlanır |
+| Süre sınırı | kolay **5 sn**, orta **6 sn**, zor **8 sn** |
+| Bekleme ("Hazır ol…") | rastgele **0.8–2 sn** — erken basış "Çok erken!" der, bekleme baştan başlar (puan kaybı yok) |
+| Doğru cevap | **500 + 500 × (1 − süre / süre sınırı)** → 500–1000 |
+| Seri çarpanı | ×1.0 → ×1.1 → ×1.2 … en fazla **×1.5** |
+| Yanlış cevap | **0** (ceza yok), seri sıfırlanır |
+| Süre doldu | **0**, seri sıfırlanır |
+| 0.4 sn'den hızlı | "Tahmin" sayılır → **0** (görmeden basmayı önler) |
+
+Örnek: orta zorlukta (6 sn) 1.5 sn'de doğru → `500 + 500 × 0.75 = 875`; 3. doğru üst üste ise ×1.2 → **1050**.
 
 Sonuç ekranında doğruluk oranına göre unvan verilir: 🌱 Acemi Meraklı → 🔍 Gelişen Araştırmacı → ⚡ Siber Gözlemci → 👑 Turing Dedektifi.
 
-> Formülü değiştirmek için sadece `lib/game/calculateScore.ts` düzenlenir; sunucu aynı fonksiyonu kullandığı için liderlik tablosu da otomatik uyum sağlar.
+### Süre nasıl ölçülüyor? (`lib/game/timing.ts`)
+
+`Date.now()` yerine tarayıcının hassas saatleri kullanılır:
+
+1. **Önceden yükleme:** görseller `img.decode()` ile indirilip çözülür; yükleme süresi oyuncuya yazılmaz.
+2. **Gösterim anı:** görseller `requestAnimationFrame` içinde görünür yapılır, bir sonraki karenin zamanı **t0** olarak kilitlenir (görselin gerçekten ekrana çıktığı an).
+3. **Basma anı:** fare için `pointerdown` (tuş **basıldığı** an; `click` bırakınca tetiklenir ve +80–150 ms ekler), klavye için `keydown` olayının `event.timeStamp` değeri kullanılır.
+4. **Süre = basma anı − t0.** Zamanlama React state'inde değil ref'lerde tutulur; ekranın yeniden çizilmesi ölçümü etkilemez.
+
+> Monitör ve fare/klavye gecikmesi (~20–40 ms) ölçülemez; ama herkes aynı bilgisayarda oynadığı için sıralama adildir.
+
+### Sunucu doğrulaması
+
+Puanı yine sunucu hesaplar (`lib/server/runs.ts` → `scoreRun`): her cevabın süre sınırını sorunun zorluğundan kendisi bulur, "tahmin" ve "süre doldu" kararını kendisi verir. Ağ/ölçüm payı için süre sınırına **0.5 sn** tolerans tanınır; daha uzun süreler "süre doldu" sayılır.
+
+> Puan formülünü değiştirmek için `lib/game/rules.ts` / `lib/game/calculateScore.ts` düzenlenir; sunucu aynı kodu kullandığı için liderlik tablosu otomatik uyum sağlar. Eski formülle kaydedilmiş skorlar varsa `/admin` → **Günü sıfırla** ile temiz başlayın.
 
 ---
 
@@ -340,47 +364,13 @@ GET  /api/admin/export?token=…                 CSV
 
 ---
 
-## 🚀 Yol Haritası: Refleks / Süreli Mod
+## 🚀 Yol Haritası
 
-Bir sonraki büyük adım, "Refleks Düellosu" fikrini bu oyunla birleştirmek: **iki fotoğraf aynı anda belirir, süre bitmeden AI olanı seç; hızlı ve doğru olan kazanır.**
-
-### Tur akışı
-
-```text
-READY ("Hazır ol" + görseller arka planda yüklenir)
-   │ rastgele 0.8–2 sn karanlık ekran   (erken basan → "ÇOK ERKEN!")
-   ▼
-REVEAL  iki görsel aynı karede belirir, t0 kilitlenir, süre çubuğu akar
-   │ sol / sağ tuş          │ süre doldu
-   ▼                        ▼
-FEEDBACK (1.5–2 sn: ✓/✗, "1.84 sn", +puan) → sonraki tur
-```
-
-### Önerilen puanlama
-
-| Durum | Puan |
-|---|---|
-| Doğru | `500 + 500 × (1 − t/T)` → 500–1000 |
-| Seri çarpanı | ×(1 + 0.1·seri), en fazla ×1.5 |
-| Yanlış | −300 (rastgele hızlı basmayı cezalandırır) |
-| < 400 ms | "Tahmin" sayılır → yanlış |
-| Süre doldu | 0 |
-
-Süre sınırı (`T`): kolay 5 sn, orta 6 sn, zor 8 sn.
-
-### Teknik notlar
-
-- Süre ölçümü `Date.now()` ile değil, `requestAnimationFrame` + `event.timeStamp` ile yapılmalı. Görseller önceden `img.decode()` ile yüklenmeli; yoksa yükleme süresi oyuncunun süresine eklenir.
-- Fare yerine **klavye** (A = sol, L = sağ) veya arcade butonu kullanın; fareyi görsele götürmek süreye 300–600 ms ekler.
-- Backend hazır: `answer.reaction_ms` ve `answer.foul` alanları var. Sadece `calculateScore.ts` güncellenir ve istemci `reactionMs` + `foul` doldurur.
-- **Düello modu:** aynı ekranda iki oyuncu (1. oyuncu A/S, 2. oyuncu K/L). Seçimler gizli kilitlenir, birlikte açıklanır; ilk doğru cevaplayana +100.
-
-### Diğer fikirler
-
-- (İleride) telefondan katılma, oda kodu, host/player yapısı
-- Takım modu, turnuva (8 kişilik eleme)
-- Paylaşılabilir skor kartı (PNG)
-- Arduino/ESP32 ile fiziksel arcade butonu (klavye gibi davranır, kod değişmez)
+- **Soru havuzu:** şu an 3 soru var; oyuncular cevapları ezberlemesin diye en az 30, mümkünse 50–60 soru.
+- **Soru sayısı ve zorluk dağılımı:** her oyunda sabit 10 soru (ör. 3 kolay + 4 orta + 3 zor). Şu an `selectQuestions` zorluğa bakmadan tüm havuzu karıştırıyor.
+- **Düello modu:** aynı ekranda iki oyuncu (1. oyuncu A/S, 2. oyuncu K/L). Seçimler gizli kilitlenir, birlikte açıklanır; ilk doğru cevaplayana bonus. Backend `mode: "duel"` için hazır.
+- **Soru istatistikleri:** `/admin`'deki soru bazlı doğruluk oranlarına göre zorluk etiketlerini düzeltme.
+- Diğer fikirler: takım modu, turnuva (eleme), paylaşılabilir skor kartı (PNG), fiziksel arcade butonu (klavye gibi davranır, kod değişmez).
 
 ---
 

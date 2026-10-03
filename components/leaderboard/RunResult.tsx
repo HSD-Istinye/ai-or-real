@@ -35,8 +35,8 @@ function buildRequest(summary: GameSummary, nick: string): SubmitRunRequest {
     answers: summary.answers.map((a) => ({
       questionId: a.questionId,
       choice: a.selectedOption ?? null,
-      reactionMs: Number.isFinite(a.timeSpentMs) ? a.timeSpentMs : null,
-      foul: null,
+      reactionMs: a.foul === 'timeout' || !Number.isFinite(a.timeSpentMs) ? null : a.timeSpentMs,
+      foul: a.foul ?? null, // bilgi amaçlı — sunucu kendisi yeniden hesaplar
     })),
   };
 }

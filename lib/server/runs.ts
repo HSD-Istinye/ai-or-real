@@ -2,6 +2,7 @@ import 'server-only';
 import { getDb } from './db';
 import { getQuestion, parseSubmitRun } from './validate';
 import { checkAnswer } from '@/lib/game/checkAnswer';
+import { TIME_GRACE_MS, timeLimitFor } from '@/lib/game/rules';
 import {
   GameMode,
   LeaderboardResponse,
@@ -72,32 +73,34 @@ export function scoreRun(run: ParsedRun) {
 
   const answers = run.answers.map((a, idx) => {
     const question = getQuestion(a.questionId)!;
-    const timedOut = a.choice === null || a.foul === 'timeout';
-    const fouled = a.foul === 'early' || a.foul === 'guess';
+    // İstemcinin "foul" bilgisine güvenilmez; süre sınırı / tahmin kararını sunucu verir.
+    // Ağ/ölçüm payı için süre sınırına TIME_GRACE_MS kadar tolerans tanınır.
+    const limit = timeLimitFor(question);
+    const ms = a.reactionMs;
+    const withinGrace = ms !== null && ms > limit && ms <= limit + TIME_GRACE_MS;
 
-    let isCorrect = false;
-    let points = 0;
-    if (!timedOut && !fouled) {
-      const res = checkAnswer({
-        question,
-        selectedOption: a.choice!,
-        timeSpentMs: a.reactionMs ?? 15_000,
-        currentStreak: streak,
-      });
-      isCorrect = res.isCorrect;
-      points = res.pointsEarned;
-      streak = res.streakAtAnswer;
-    } else {
-      streak = 0;
-    }
-
+    const res = checkAnswer({
+      question,
+      selectedOption: a.choice,
+      timeSpentMs: withinGrace ? limit : ms,
+      currentStreak: streak,
+    });
+    streak = res.streakAtAnswer;
     maxStreak = Math.max(maxStreak, streak);
-    score += points;
-    if (isCorrect) {
+    score += res.pointsEarned;
+    if (res.isCorrect) {
       correct++;
-      if (a.reactionMs !== null) correctTimes.push(a.reactionMs);
+      if (ms !== null) correctTimes.push(Math.min(ms, limit));
     }
-    return { idx, ...a, correct: isCorrect, points };
+    return {
+      idx,
+      questionId: a.questionId,
+      choice: a.choice,
+      reactionMs: ms,
+      foul: res.foul ?? null,
+      correct: res.isCorrect,
+      points: res.pointsEarned,
+    };
   });
 
   const avgMs = correctTimes.length

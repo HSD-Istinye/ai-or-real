@@ -15,8 +15,8 @@ const features = [
   {
     icon: Timer,
     eyebrow: 'TEMPO',
-    title: 'Kendi ritminde oyna',
-    description: 'Her turda iki görseli incele, kararını ver ve bir sonraki soruya geç.',
+    title: 'Hızlı karar ver',
+    description: 'İki görsel aynı anda belirir. Süre bitmeden AI olanı seç; ne kadar hızlıysan o kadar puan.',
   },
   {
     icon: BadgeCheck,

@@ -9,7 +9,17 @@ interface QuestionCardProps {
   question: Question;
   selectedOption: OptionType | null;
   isRevealed: boolean;
-  onSelectOption: (optionId: OptionType) => void;
+  onSelectOption: (optionId: OptionType, eventTimeStamp: number) => void;
+  /** Görsellerin kapsayıcısı — süreli modda görünürlüğü doğrudan bu elemandan açılır. */
+  imagesRef?: React.Ref<HTMLDivElement>;
+  /** false → görseller yer kaplar ama görünmez (yüklenirken / beklerken) */
+  imagesVisible?: boolean;
+  /** Görsellerin üzerinde ortalanmış içerik ("Hazır ol…", tur sonucu) */
+  overlay?: React.ReactNode;
+  /** Görsellerin üstünde gösterilecek içerik (süre çubuğu) */
+  topSlot?: React.ReactNode;
+  /** true → uzun açıklama gizlenir (süreli modda okumaya vakit yok) */
+  compact?: boolean;
 }
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({
@@ -17,6 +27,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   selectedOption,
   isRevealed,
   onSelectOption,
+  imagesRef,
+  imagesVisible = true,
+  overlay,
+  topSlot,
+  compact = false,
 }) => {
   const getDifficultyBadge = (diff: Question['difficulty']) => {
     switch (diff) {
@@ -82,25 +97,32 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           {question.title}
         </h2>
 
-        <p
-          style={{
-            fontSize: '0.95rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.5,
-          }}
-        >
-          {question.description}
-        </p>
+        {!compact && (
+          <p
+            style={{
+              fontSize: '0.95rem',
+              color: 'var(--text-secondary)',
+              lineHeight: 1.5,
+            }}
+          >
+            {question.description}
+          </p>
+        )}
       </div>
 
+      {topSlot}
+
       {/* Image Options Grid */}
+      <div style={{ position: 'relative', width: '100%' }}>
       <div
+        ref={imagesRef}
         style={{
           display: 'flex',
           gap: '20px',
           justifyContent: 'center',
           flexWrap: 'wrap',
           width: '100%',
+          visibility: imagesVisible ? 'visible' : 'hidden',
         }}
       >
         {question.options.map((option, idx) => (
@@ -112,9 +134,28 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             isRevealed={isRevealed}
             targetAnswer={question.correctAnswer}
             disabled={isRevealed}
-            onSelect={() => onSelectOption(option.id)}
+            onSelect={(ts) => onSelectOption(option.id, ts)}
+            keyHint={idx === 0 ? '←' : '→'}
+            maxImageHeight={compact ? 'max(240px, calc(100vh - 360px))' : undefined}
+            showSourceDescription={!compact}
           />
         ))}
+      </div>
+      {overlay && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+            zIndex: 20,
+          }}
+        >
+          {overlay}
+        </div>
+      )}
       </div>
     </div>
   );

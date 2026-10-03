@@ -1,12 +1,28 @@
 import { Question, OptionType } from './question';
+import { Foul } from './api';
 
 export type GameStatus = 'idle' | 'playing' | 'answered' | 'finished';
 
+/**
+ * Bir turun aşamaları (süreli mod):
+ * loading → görseller arka planda yükleniyor
+ * wait    → "Hazır ol…" rastgele bekleme (erken basış = "Çok erken!")
+ * live    → görseller göründü, süre akıyor
+ * feedback→ sonuç gösteriliyor, kısa süre sonra sonraki tura geçilir
+ */
+export type RoundPhase = 'loading' | 'wait' | 'live' | 'feedback';
+
 export interface PlayerAnswer {
   questionId: string;
-  selectedOption: OptionType;
+  /** null = süre doldu */
+  selectedOption: OptionType | null;
   isCorrect: boolean;
+  /** görsellerin belirdiği andan cevaba kadar (ms) */
   timeSpentMs: number;
+  /** bu sorunun süre sınırı (ms) */
+  timeLimitMs?: number;
+  /** null | 'guess' (çok hızlı, tahmin) | 'timeout' (süre doldu) */
+  foul?: Foul | null;
   pointsEarned: number;
   streakAtAnswer: number;
 }

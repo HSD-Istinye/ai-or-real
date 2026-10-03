@@ -312,7 +312,11 @@ export default function ResultPage() {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                    {Math.round(ans.timeSpentMs / 1000)} sn
+                    {ans.foul === 'timeout'
+                      ? 'Süre doldu'
+                      : ans.foul === 'guess'
+                        ? `Tahmin (${(ans.timeSpentMs / 1000).toFixed(2)} sn)`
+                        : `${(ans.timeSpentMs / 1000).toFixed(2)} sn`}
                   </span>
                   <span
                     style={{
