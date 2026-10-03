@@ -46,7 +46,7 @@ export default function HomePage() {
             tarafından üretildiğini bul.
           </p>
           <div className="home-actions">
-            <Link href="/game" className="home-play-link">
+            <Link href="/start" className="home-play-link">
               <Button variant="primary" size="lg" rightIcon={<ArrowRight size={19} />}>
                 Oyuna başla
               </Button>

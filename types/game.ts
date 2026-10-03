@@ -34,6 +34,8 @@ export interface GameSummary {
   answers: PlayerAnswer[];
   /** Leaderboard kaydı için benzersiz oyun kimliği (UUID). Tekrar gönderimde aynı kalır. */
   runId?: string;
+  /** Oyuncunun oyuna başlamadan önce girdiği isim. */
+  nick?: string;
   /** Oyunun bittiği an (ISO 8601). */
   playedAt?: string;
 }

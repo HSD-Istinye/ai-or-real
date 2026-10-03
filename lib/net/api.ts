@@ -49,3 +49,8 @@ export function getStats(scope: Scope = 'today', score?: number, mode: GameMode 
   const s = score === undefined ? '' : `&score=${score}`;
   return request<StatsResponse>(`/api/stats?scope=${scope}&mode=${mode}${s}`);
 }
+
+/** Oyuna başlamadan önce ismi sunucuda kontrol eder (uygunsuz isim filtresi). */
+export function checkNick(nick: string) {
+  return request<{ ok: true; nick: string }>('/api/nick', { method: 'POST', body: JSON.stringify({ nick }) });
+}

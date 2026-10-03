@@ -9,6 +9,7 @@ import { createGame } from '@/lib/game/createGame';
 import { checkAnswer } from '@/lib/game/checkAnswer';
 import { generateGameSummary } from '@/lib/game/calculateScore';
 import { newId } from '@/lib/net/uuid';
+import { getPlayerNick } from '@/lib/player';
 import { GameState, PlayerAnswer } from '@/types/game';
 import { OptionType } from '@/types/question';
 
@@ -98,13 +99,20 @@ export default function GamePage() {
   const [selectedOption, setSelectedOption] = useState<OptionType | null>(null);
   const [lastAnswer, setLastAnswer] = useState<PlayerAnswer | null>(null);
   const soundRef = useRef<SoundEffects | null>(null);
+  const nickRef = useRef<string | null>(null);
 
-  // Initialize game on mount
+  // Initialize game on mount — isim girilmeden oyun başlamaz
   useEffect(() => {
+    const nick = getPlayerNick();
+    if (!nick) {
+      router.replace('/start');
+      return;
+    }
+    nickRef.current = nick;
     soundRef.current = new SoundEffects();
     const freshGame = createGame();
     setGameState(freshGame);
-  }, []);
+  }, [router]);
 
   if (!gameState || gameState.questions.length === 0) {
     return (
@@ -167,7 +175,8 @@ export default function GamePage() {
       // Calculate final summary and persist in sessionStorage
       const summary = {
         ...generateGameSummary(gameState),
-        runId: newId(), // leaderboard kaydı için — sonuç ekranında gönderilir
+        runId: newId(), // leaderboard kaydı için — sonuç ekranında otomatik gönderilir
+        nick: nickRef.current ?? undefined,
         playedAt: new Date().toISOString(),
       };
       if (typeof window !== 'undefined') {

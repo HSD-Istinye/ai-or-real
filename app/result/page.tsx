@@ -7,6 +7,7 @@ import confetti from 'canvas-confetti';
 import {
   RotateCcw,
   Home,
+  UserPlus,
   Trophy,
   CheckCircle2,
   XCircle,
@@ -16,7 +17,8 @@ import {
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { GameSummary } from '@/types/game';
-import NameEntry from '@/components/leaderboard/NameEntry';
+import RunResult from '@/components/leaderboard/RunResult';
+import { clearPlayerNick } from '@/lib/player';
 
 export default function ResultPage() {
   const router = useRouter();
@@ -68,11 +70,21 @@ export default function ResultPage() {
     );
   }
 
+  // Aynı oyuncu tekrar oynar (isim korunur)
   const handleRestart = () => {
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('spot_the_ai_result');
     }
     router.push('/game');
+  };
+
+  // Sıradaki oyuncu: isim sıfırlanır, isim ekranına gidilir
+  const handleNewPlayer = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('spot_the_ai_result');
+    }
+    clearPlayerNick();
+    router.push('/start');
   };
 
   return (
@@ -146,8 +158,8 @@ export default function ResultPage() {
         </p>
       </div>
 
-      {/* Leaderboard: isim girişi → sunucuya kayıt → sıralama */}
-      <NameEntry summary={summary} />
+      {/* Liderlik tablosu: skor otomatik kaydedilir, oyuncunun satırı vurgulanır */}
+      <RunResult summary={summary} />
 
       {/* Stats Cards Grid */}
       <div
@@ -327,6 +339,15 @@ export default function ResultPage() {
           leftIcon={<RotateCcw size={20} />}
         >
           Yeniden Oyna
+        </Button>
+
+        <Button
+          variant="secondary"
+          size="lg"
+          onClick={handleNewPlayer}
+          leftIcon={<UserPlus size={20} />}
+        >
+          Yeni Oyuncu
         </Button>
 
         <Link href="/" style={{ textDecoration: 'none' }}>
