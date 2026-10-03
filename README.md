@@ -1,6 +1,6 @@
 # AI or Real? 🤖📷
 
-**AI or Real? (Spot the AI)**, gerçek fotoğrafları yapay zekâ tarafından üretilmiş görsellerden ayırt etmeye çalıştığınız, skorların canlı bir liderlik tablosuna yazıldığı bir web oyunudur. **Tek bir bilgisayarda**, **internet olmadan** çalışır: oyuncular bilgisayarda fare ile oynar, liderlik tablosu aynı bilgisayarda ya da bağlı ikinci bir ekranda canlı görünür.
+**AI or Real? (Spot the AI)**, gerçek fotoğrafları yapay zekâ tarafından üretilmiş görsellerden ayırt etmeye çalıştığınız, skorların canlı bir liderlik tablosuna yazıldığı bir web oyunudur. **Tek bir bilgisayarda**, **internet olmadan** çalışır: oyuncular bilgisayarda fare ya da klavye ile oynar, liderlik tablosu aynı bilgisayarda ya da bağlı ikinci bir ekranda canlı görünür.
 
 Her turda kısa bir "Hazır ol…" beklemesinden sonra iki görsel **aynı anda** belirir: biri gerçek, diğeri yapay zekâ ürünü. Oyuncu süre bitmeden AI olanı **fare** ya da **klavye (← / →)** ile seçer. Doğru ve hızlı cevaplar, art arda doğru bilme serisiyle birlikte daha fazla puan kazandırır. Oyuncu başlamadan önce ismini girer; oyun bitince skoru otomatik kaydedilir ve liderlik tablosunda kendi sırasını görür.
 
@@ -90,7 +90,6 @@ Her şey aynı bilgisayarda çalışır; internet veya Wi-Fi gerekmez. Tabloyu i
 | `npm run dev` | Geliştirme sunucusu |
 | `npm run build` | Üretim derlemesi |
 | `npm run start` | Üretim sunucusu |
-| `npm run lint` | Kod kontrolü |
 | `npm run seed` | 200 sahte oyun ekler (`npm run seed -- 50` → 50 tane) |
 | `npm run seed -- --clear` | **Sadece** sahte kayıtları siler (gerçeklere dokunmaz) |
 | `npm run backup` | `data/backups/` altına anlık yedek alır (`npm run backup -- E:\yedek` → USB) |
@@ -132,6 +131,16 @@ Sonuç ekranı: unvan → skor otomatik kaydedilir → "Bugün 7. sıradasın"
 "Yeniden Oyna" (aynı isim) · "Yeni Oyuncu" (isim ekranına döner)
 ```
 
+### Kontroller
+
+| Ne | Fare | Klavye |
+|---|---|---|
+| Sol görseli seç | Görsele bas | `←` veya `A` |
+| Sağ görseli seç | Görsele bas | `→` veya `L` (`D` de çalışır) |
+| Tur sonucunu beklemeden geç | — | `Enter` veya `Boşluk` |
+
+Görseller belirmeden önce basmak "Çok erken!" uyarısı verir ve bekleme baştan başlar; puan kaybı yoktur.
+
 ---
 
 ## 🛠️ Kullanılan Teknolojiler
@@ -150,36 +159,35 @@ Sonuç ekranı: unvan → skor otomatik kaydedilir → "Bugün 7. sıradasın"
 ## 🏗️ Teknik Mimari
 
 ```text
-LAPTOP (localhost:3000, internet gerekmez)
+BİLGİSAYAR (localhost:3000, internet gerekmez)
 ┌──────────────────────── Next.js (tek süreç) ────────────────────────┐
 │                                                                     │
 │  UI LAYER (tarayıcı)                                                │
-│   /  /start  /game  /result → oyun ekranları                            │
-│   /leaderboard          → TV tablosu (3 sn'de bir yenilenir)        │
-│   /admin                → gizle, günü sıfırla, CSV, soru istatistiği│
+│   /  /start  /game  /result → oyun ekranları                        │
+│   /leaderboard              → TV tablosu (3 sn'de bir yenilenir)    │
+│   /admin                    → gizle, günü sıfırla, CSV, istatistik  │
 │        │                                                            │
 │        ▼                                                            │
-│  GAME ENGINE (lib/game/*)  — soru seçimi, cevap kontrolü, skor      │
-│        │                                                            │
+│  GAME ENGINE (lib/game/*) — soru seçimi, süre kuralları, cevap      │
+│        │                    kontrolü, skor, süre ölçümü             │
 │        ▼  oyun sonu: lib/net/submitRun.ts (offline kuyruk)          │
 │                                                                     │
-│  API  /api/nick  /api/runs  /api/leaderboard  /api/stats               │
-│       /api/health  /api/admin/*                                     │
+│  API   /api/nick  /api/runs  /api/leaderboard  /api/stats           │
+│        /api/health  /api/admin/*                                    │
 │        │                                                            │
 │        ▼                                                            │
-│  SERVER (lib/server/*) — doğrulama, skoru yeniden hesaplama, sorgular│
+│  SERVER (lib/server/*) — doğrulama, skoru yeniden hesaplama, sorgu  │
 │        │                                                            │
 │        ▼                                                            │
-│  DATA   data/game.db (SQLite)   data/questions.json   public/images │
+│  DATA  data/game.db (SQLite)  data/questions.json  public/images    │
 └─────────────────────────────────────────────────────────────────────┘
 
-BİLGİSAYAR
- ├─ Ekran 1  → oyun, oyuncu fare ile oynar
- └─ Ekran 2  → /leaderboard?tv=1 (isteğe bağlı, canlı tablo)
+ Ekran 1  → oyun (fare veya klavye)
+ Ekran 2  → /leaderboard?tv=1 (isteğe bağlı, canlı tablo)
 ```
 
 - **UI Layer** oyun kurallarını bilmez; oyuncunun seçimini Game Engine'e iletir, dönen sonucu gösterir.
-- **Game Engine** saf TypeScript fonksiyonlarıdır (`lib/game/*`). Hem tarayıcıda hem sunucuda kullanılır; puan formülü bu sayede tek yerde durur.
+- **Game Engine** saf TypeScript fonksiyonlarıdır (`lib/game/*`). Kurallar (`rules.ts`), cevap kontrolü ve puan hem tarayıcıda hem sunucuda kullanılır; formül bu sayede tek yerde durur. Yalnızca süre ölçümü (`timing.ts`) tarayıcıya özeldir.
 - **Server** katmanı sadece sunucuda çalışır (`import 'server-only'`). İstemciden gelen skora güvenmez, cevaplardan puanı kendisi hesaplar.
 
 ---
@@ -320,7 +328,7 @@ Puanı yine sunucu hesaplar (`lib/server/runs.ts` → `scoreRun`): her cevabın 
 | `run` | Bir oyun: `id` (UUID), `nick`, `nick_key`, `score`, `correct`, `total`, `avg_ms`, `max_streak`, `device`, `created_at`, `hidden` |
 | `answer` | Oyundaki her cevap: `question_id`, `choice`, `correct`, `reaction_ms`, `points`, `foul` |
 
-`answer` tablosu soru bazlı istatistik içindir ("Bu fotoğrafı herkesin %71'i yanlış bildi"). `foul` alanı refleks modu için şimdiden hazırdır.
+`answer` tablosu soru bazlı istatistik içindir ("Bu fotoğrafı herkesin %71'i yanlış bildi"). `reaction_ms` cevabın süresini, `foul` ise `guess` (0.4 sn'den hızlı, tahmin) ya da `timeout` (süre doldu) durumunu tutar; ikisini de sunucu belirler.
 
 ### API sözleşmesi (`types/api.ts`)
 
@@ -331,10 +339,13 @@ POST /api/nick  { nick }
 
 POST /api/runs
   { id: "<uuid>", nick: "Ali Y.", mode: "solo", device: "stand-1", createdAt: "<ISO>",
-    answers: [ { questionId: "Q001", choice: "ai", reactionMs: 1840, foul: null }, … ] }
+    answers: [ { questionId: "Q001", choice: "ai", reactionMs: 1840 },
+               { questionId: "Q002", choice: null, reactionMs: null },   // süre doldu
+               … ] }
   → 201 { score, correct, total, avgMs, rankToday, percentile, beatenToday, totalToday, … }
   → 200 aynı id tekrar gelirse (yeni kayıt açılmaz)
   → 400 { ok:false, error }  geçersiz istek / uygunsuz isim
+  (puan, süre sınırı, tahmin ve süre doldu kararları sunucuda yeniden hesaplanır)
 
 GET  /api/leaderboard?scope=today|alltime&limit=10&mode=solo
   → { rows: [ { rank, nick, score, correct, total, avgMs, … } ], totalPlayers }
