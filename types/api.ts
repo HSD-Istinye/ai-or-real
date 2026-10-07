@@ -36,10 +36,12 @@ export interface SubmitRunResponse {
   correct: number;
   total: number;
   avgMs: number | null;
-  rankToday: number;
-  percentile: number; // bugün oynayanların yüzde kaçından iyi (0–100)
-  beatenToday: number; // bugün daha düşük skor yapan oyun sayısı
-  totalToday: number; // bu oyun dahil bugünkü toplam oyun
+  rankToday: number; // oyuncunun bugünkü en iyi oyunuyla sırası (tablodaki sıra)
+  rankThisRun: number; // bu oyunun skoruyla olacağı sıra
+  bestToday: { id: string; score: number; correct: number; total: number; avgMs: number | null }; // bugünkü en iyi oyun (bu oyun dahil)
+  percentile: number; // bugün oynayan diğer kişilerin yüzde kaçından iyi (0–100)
+  beatenToday: number; // en iyi skoru oyuncununkinden düşük olan kişi sayısı
+  totalToday: number; // bugün oynayan kişi sayısı (oyuncu dahil, aynı isim bir kez)
 }
 
 export interface LeaderboardRow {

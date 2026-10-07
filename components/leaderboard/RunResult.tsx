@@ -63,8 +63,10 @@ export default function RunResult({ summary }: { summary: GameSummary }) {
       // Sayfa yenilendiyse tekrar gönderme, kayıtlı sonucu göster
       try {
         const saved = sessionStorage.getItem(doneKey(runId));
-        if (saved) {
-          setPhase({ kind: 'done', res: JSON.parse(saved) });
+        const res = saved ? (JSON.parse(saved) as SubmitRunResponse) : null;
+        if (res?.bestToday) {
+          // eski biçimde kayıtlıysa (bestToday yok) yeniden gönder; aynı id çift kayıt açmaz
+          setPhase({ kind: 'done', res });
           await loadBoard();
           return;
         }
@@ -137,14 +139,15 @@ export default function RunResult({ summary }: { summary: GameSummary }) {
   }
 
   const r = phase.res;
+  // Tablo oyuncuyu bugünkü en iyi oyunuyla gösterir; kendi satırı da o oyun olmalı
   const ownRow: LeaderboardRow = {
     rank: r.rankToday,
-    id: r.id,
+    id: r.bestToday.id,
     nick: r.nick,
-    score: r.score,
-    correct: r.correct,
-    total: r.total,
-    avgMs: r.avgMs,
+    score: r.bestToday.score,
+    correct: r.bestToday.correct,
+    total: r.bestToday.total,
+    avgMs: r.bestToday.avgMs,
     createdAt: new Date().toISOString(),
   };
 
@@ -159,6 +162,11 @@ export default function RunResult({ summary }: { summary: GameSummary }) {
         <div style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800 }}>
           Bugün <span style={{ color: 'var(--accent-purple)' }}>{r.rankToday}.</span> sıradasın
         </div>
+        {r.rankThisRun !== r.rankToday && (
+          <div style={{ color: 'var(--text-secondary)' }}>
+            Bu oyunda: <b>{r.rankThisRun}.</b> &bull; bugünkü en iyi skorun <b>{r.bestToday.score}</b>
+          </div>
+        )}
         <div style={{ color: 'var(--text-secondary)' }}>
           Bugün oynayan {r.totalToday} kişiden <b style={{ color: 'var(--accent-cyan)' }}>{r.beatenToday}</b> kişiyi
           geçtin &bull; yüzdelik dilim %{r.percentile}
@@ -167,7 +175,7 @@ export default function RunResult({ summary }: { summary: GameSummary }) {
 
       {/* Tablo */}
       {board ? (
-        <LeaderboardTable rows={board.rows} highlightId={r.id} highlightNick={r.nick} extraRow={ownRow} size="md" />
+        <LeaderboardTable rows={board.rows} highlightId={r.bestToday.id} highlightNick={r.nick} extraRow={ownRow} size="md" />
       ) : (
         <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Tablo yükleniyor…</div>
       )}

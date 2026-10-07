@@ -221,6 +221,8 @@ export default function GamePage() {
       router.push('/result');
       return;
     }
+    // Yeni soru, önceki turun 'feedback' fazıyla (görseller görünür) tek kare bile çizilmesin
+    go('loading');
     setGameState((prev) => prev && { ...prev, currentIndex: prev.currentIndex + 1, status: 'playing' });
   }, [router]);
 
@@ -254,6 +256,8 @@ export default function GamePage() {
 
   const tooEarlyPress = useCallback(() => {
     clearTimers();
+    // revealOnNextFrame görselleri açtıktan sonra ama t0'dan önce basıldıysa geri gizle
+    if (imagesRef.current) imagesRef.current.style.visibility = 'hidden';
     setTooEarly(true);
     soundRef.current?.playIncorrect();
     later(() => {
