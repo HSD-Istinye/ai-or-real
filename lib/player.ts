@@ -5,7 +5,7 @@
 const KEY = 'hsd_player_nick';
 
 /** Sunucudaki NICK_MAX ile aynı (lib/server/validate.ts). */
-export const NICK_INPUT_MAX = 40;
+export const NICK_INPUT_MAX = 20;
 
 /** Yazarken izin verilmeyen karakterleri ayıklar (sunucu da aynı kuralı uygular). */
 export function sanitizeNickInput(v: string): string {

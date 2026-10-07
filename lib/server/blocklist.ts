@@ -11,12 +11,14 @@
 const EXACT = new Set<string>([
   'amk', 'amq', 'aq', 'mk', 'mq', 'sik', 'sık', 'skm', 'skt', 'sg', 'oç', 'oc', 'piç', 'pic',
   'göt', 'got', 'yrk', 'yrm', 'amc', 'amcik', 'amcık', 'gavat', 'kahpe', 'pezevenk', 'ibne',
+  'bok', 'boku', 'boktan', 'kaltak', 'yavşak', 'yavsak', 'şerefsiz', 'serefsiz',
 ]);
 
 // Not: harf tekrarları sadeleştirildiği için kökleri tek harfle yazın ("yarrak" → "yarak").
 const ROOTS = [
   'orospu', 'siktir', 'sikerim', 'sikeyim', 'sikik', 'amına', 'amcık', 'amcik',
   'yarak', 'pezeven', 'kahpe', 'ibne', 'gavat', 'götveren', 'gotveren',
+  'kaltak', 'yavşak', 'yavsak', 'şerefsiz', 'serefsiz',
 ];
 
 // Harf yerine rakam/sembol hilelerini sadeleştir: 4→a, 3→e, 1→i, 0→o, 5→s, $→s, @→a

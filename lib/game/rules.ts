@@ -17,7 +17,7 @@ export const WAIT_MIN_MS = 800;
 export const WAIT_MAX_MS = 2000;
 
 /** Bundan hızlı cevap "tahmin" sayılır (görseli görmeden basılmış) → 0 puan. */
-export const GUESS_MS = 400;
+export const GUESS_MS = 250; // insan tepki süresinin alt sınırı (~0.2–0.25 sn)
 
 /** Cevaptan sonra sonucun ekranda kalma süresi (ms); sonra otomatik geçilir. */
 export const FEEDBACK_MS = 1800;

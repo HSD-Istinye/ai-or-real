@@ -172,24 +172,39 @@ function buildSubmitResponse(r: RunRow, duplicate: boolean): SubmitRunResponse {
   const db = getDb();
   const since = scopeSince('today');
   const pkey = r.nick === '???' ? r.id : nickKey(r.nick);
+  const params = { mode: r.mode, since, pkey };
 
-  const better = db
+  // Tablo her oyuncuyu bugünkü en iyi oyunuyla gösterir; başlıktaki sıra da ona göre olmalı.
+  const prevBest = db
+    .prepare(`${BEST_CTE} SELECT id, score, correct, total, avg_ms FROM best WHERE rn = 1 AND pkey = @pkey`)
+    .get(params) as Pick<RunRow, 'id' | 'score' | 'correct' | 'total' | 'avg_ms'> | undefined;
+  const avgOf = (ms: number | null) => ms ?? 999999999;
+  const best =
+    prevBest && (prevBest.score > r.score || (prevBest.score === r.score && avgOf(prevBest.avg_ms) < avgOf(r.avg_ms)))
+      ? prevBest
+      : r;
+
+  // Diğer oyuncuların (en iyi skorlarıyla) kaçı verilen skordan daha iyi?
+  const betterStmt = db.prepare(
+    `${BEST_CTE}
+     SELECT COUNT(*) AS n FROM best
+     WHERE rn = 1 AND pkey != @pkey
+       AND (score > @score OR (score = @score AND ${AVG} < COALESCE(@avgMs, 999999999)))`,
+  );
+  const rankOf = (score: number, avgMs: number | null) =>
+    (betterStmt.get({ ...params, score, avgMs }) as { n: number }).n + 1;
+
+  // Kişi sayısı: aynı isim bir kez sayılır (oyun sayısı değil)
+  const others = db
     .prepare(
       `${BEST_CTE}
-       SELECT COUNT(*) AS n FROM best
-       WHERE rn = 1 AND pkey != @pkey
-         AND (score > @score OR (score = @score AND ${AVG} < COALESCE(@avgMs, 999999999)))`,
+       SELECT COUNT(*) AS total, SUM(CASE WHEN score < @score THEN 1 ELSE 0 END) AS lower
+       FROM best WHERE rn = 1 AND pkey != @pkey`,
     )
-    .get({ mode: r.mode, since, pkey, score: r.score, avgMs: r.avg_ms }) as { n: number };
+    .get({ ...params, score: best.score }) as { total: number; lower: number | null };
 
-  const counts = db
-    .prepare(
-      `SELECT COUNT(*) AS total, SUM(CASE WHEN score < @score THEN 1 ELSE 0 END) AS lower
-       FROM run WHERE hidden = 0 AND mode = @mode AND created_at >= @since AND id != @id`,
-    )
-    .get({ mode: r.mode, since, score: r.score, id: r.id }) as { total: number; lower: number | null };
-
-  const percentile = counts.total > 0 ? Math.round((100 * (counts.lower ?? 0)) / counts.total) : 100;
+  const beaten = others.lower ?? 0;
+  const percentile = others.total > 0 ? Math.round((100 * beaten) / others.total) : 100;
 
   return {
     ok: true,
@@ -200,10 +215,12 @@ function buildSubmitResponse(r: RunRow, duplicate: boolean): SubmitRunResponse {
     correct: r.correct,
     total: r.total,
     avgMs: r.avg_ms,
-    rankToday: better.n + 1,
+    rankToday: rankOf(best.score, best.avg_ms),
+    rankThisRun: rankOf(r.score, r.avg_ms),
+    bestToday: { id: best.id, score: best.score, correct: best.correct, total: best.total, avgMs: best.avg_ms },
     percentile,
-    beatenToday: counts.lower ?? 0,
-    totalToday: counts.total + 1,
+    beatenToday: beaten,
+    totalToday: others.total + 1,
   };
 }
 

@@ -84,7 +84,10 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
         backgroundColor: 'var(--bg-secondary)',
         overflow: 'hidden',
         cursor: disabled || isRevealed ? 'default' : 'pointer',
-        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        // 'all' olmasın: visibility de geçişe girer, gizlenen görseller 0.3 sn görünür kalır
+        transition: ['border-color', 'box-shadow', 'transform']
+          .map((p) => `${p} 0.3s cubic-bezier(0.16, 1, 0.3, 1)`)
+          .join(', '),
         transform: isSelected && !isRevealed ? 'scale(1.02)' : 'none',
       }}
     >

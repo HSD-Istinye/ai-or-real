@@ -294,7 +294,7 @@ Tüm sayılar tek dosyada: **`lib/game/rules.ts`**. Hem oyun hem sunucu bu dosya
 | Seri çarpanı | ×1.0 → ×1.1 → ×1.2 … en fazla **×1.5** |
 | Yanlış cevap | **0** (ceza yok), seri sıfırlanır |
 | Süre doldu | **0**, seri sıfırlanır |
-| 0.4 sn'den hızlı | "Tahmin" sayılır → **0** (görmeden basmayı önler) |
+| 0.25 sn'den hızlı | "Tahmin" sayılır → **0** (görmeden basmayı önler) |
 
 Örnek: orta zorlukta (6 sn) 1.5 sn'de doğru → `500 + 500 × 0.75 = 875`; 3. doğru üst üste ise ×1.2 → **1050**.
 
@@ -328,7 +328,7 @@ Puanı yine sunucu hesaplar (`lib/server/runs.ts` → `scoreRun`): her cevabın 
 | `run` | Bir oyun: `id` (UUID), `nick`, `nick_key`, `score`, `correct`, `total`, `avg_ms`, `max_streak`, `device`, `created_at`, `hidden` |
 | `answer` | Oyundaki her cevap: `question_id`, `choice`, `correct`, `reaction_ms`, `points`, `foul` |
 
-`answer` tablosu soru bazlı istatistik içindir ("Bu fotoğrafı herkesin %71'i yanlış bildi"). `reaction_ms` cevabın süresini, `foul` ise `guess` (0.4 sn'den hızlı, tahmin) ya da `timeout` (süre doldu) durumunu tutar; ikisini de sunucu belirler.
+`answer` tablosu soru bazlı istatistik içindir ("Bu fotoğrafı herkesin %71'i yanlış bildi"). `reaction_ms` cevabın süresini, `foul` ise `guess` (0.25 sn'den hızlı, tahmin) ya da `timeout` (süre doldu) durumunu tutar; ikisini de sunucu belirler.
 
 ### API sözleşmesi (`types/api.ts`)
 
@@ -366,7 +366,7 @@ GET  /api/admin/export?token=…                 CSV
 - **Skoru sunucu hesaplar.** İstemci sadece cevapları gönderir; konsoldan sahte skor gönderilemez.
 - **Sıralama:** puan (yüksekten düşüğe), eşitlikte doğru cevapların ortalama süresi (hızlı olan üstte).
 - **Aynı isim** (büyük/küçük harf fark etmez) tabloda en iyi skoruyla **bir kez** görünür. İsimsiz (`???`) oyuncular ayrı sayılır ve "İsimsiz" yazar.
-- **İsim:** oyuna başlamadan önce `/start` ekranında sorulur; isim girilmeden `/game` açılmaz. Uzunluk sınırı yok (yalnızca 40 karakterlik teknik üst sınır); harf, rakam, boşluk ve `. _ - '` kullanılabilir. İsim oyun boyunca tarayıcı sekmesinde (`sessionStorage`) tutulur; "Yeni Oyuncu" butonu sıfırlar.
+- **İsim:** oyuna başlamadan önce `/start` ekranında sorulur; isim girilmeden `/game` açılmaz. En fazla 20 karakter (TV tablosuna sığsın); harf, rakam, boşluk ve `. _ - '` kullanılabilir, en az bir harf şart. İsim oyun boyunca tarayıcı sekmesinde (`sessionStorage`) tutulur; "Yeni Oyuncu" butonu sıfırlar.
 - **Kayıt:** oyun bitince skor bu isimle **otomatik** kaydedilir, ayrıca bir şey sormaz. Sunucu ismi oyun sonunda yine de reddederse skor kaybolmaz, "İsimsiz" olarak kaydedilir.
 - **Uygunsuz isim filtresi** (`lib/server/blocklist.ts`): isim ekranında anında uyarı verir; kelime ve kök kontrolü yapar, "s1kt1r" gibi rakamlı yazımları yakalar, "Işık" gibi masum isimleri engellemez. Kaçanlar `/admin`'den gizlenir.
 - **"Bugün"** sunucu bilgisayarının saatine göre gece yarısından itibaren sayılır.

@@ -11,10 +11,10 @@ export function getQuestion(id: string): Question | undefined {
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-// Harf (her dil), rakam, boşluk ve . _ - ' karakterleri. Uzunluk sınırı yok;
-// sadece yapıştırılan dev metinler tabloyu bozmasın diye teknik bir üst sınır var.
+// Harf (her dil), rakam, boşluk ve . _ - ' karakterleri; en az bir harf şart (".", "123" olmaz).
+// 20 karakter: TV tablosunda tek satıra sığsın.
 const NICK_RE = /^[\p{L}\p{N} ._'\-]+$/u;
-export const NICK_MAX = 40;
+export const NICK_MAX = 20;
 const MODES: GameMode[] = ['solo', 'duel'];
 const FOULS: Foul[] = ['early', 'guess', 'timeout'];
 const MAX_ANSWERS = 30;
@@ -33,6 +33,7 @@ export function normalizeNick(raw: unknown): string {
   if (nick === '???') return nick; // isimsiz oyuncu
   if (!nick) fail('isim boş olamaz');
   if (!NICK_RE.test(nick)) fail('isim sadece harf, rakam, boşluk ve . _ - içerebilir');
+  if (!/\p{L}/u.test(nick)) fail('isim en az bir harf içermeli');
   if (isBlockedNick(nick)) fail('Bu isim kullanılamaz, başka bir isim dene');
   return nick;
 }
