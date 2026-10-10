@@ -1,8 +1,8 @@
 import { GameState } from '@/types/game';
 import { selectQuestions } from './selectQuestions';
 
-export function createGame(questionLimit?: number): GameState {
-  const questions = selectQuestions(questionLimit);
+export function createGame(): GameState {
+  const questions = selectQuestions();
 
   return {
     questions,

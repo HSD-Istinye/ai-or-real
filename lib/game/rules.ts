@@ -12,6 +12,13 @@ export const TIME_LIMIT_MS: Record<Question['difficulty'], number> = {
   hard: 8000,
 };
 
+/** Bir oyundaki soru sayısı, zorluğa göre (toplam 10). */
+export const QUESTION_MIX: Record<Question['difficulty'], number> = {
+  easy: 3,
+  medium: 4,
+  hard: 3,
+};
+
 /** Görseller belirmeden önceki rastgele bekleme (ms) — ritim ezberlenemesin diye. */
 export const WAIT_MIN_MS = 800;
 export const WAIT_MAX_MS = 2000;

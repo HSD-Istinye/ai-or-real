@@ -1,10 +1,10 @@
 import 'server-only';
-import rawQuestions from '@/data/questions.json';
+import { QUESTIONS as ALL_QUESTIONS } from '@/lib/game/questions';
 import { Question } from '@/types/question';
 import { Foul, GameMode, SubmitAnswer, SubmitRunRequest } from '@/types/api';
 import { isBlockedNick } from './blocklist';
 
-const QUESTIONS = new Map((rawQuestions as Question[]).map((q) => [q.id, q]));
+const QUESTIONS = new Map(ALL_QUESTIONS.map((q) => [q.id, q]));
 
 export function getQuestion(id: string): Question | undefined {
   return QUESTIONS.get(id);
