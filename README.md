@@ -259,28 +259,27 @@ ai-or-real/
 
 ### Soru seçimi
 
-- Sorular `data/questions.json` havuzundan karıştırılarak seçilir.
+- Her oyunda **10 soru**: havuzdan **3 kolay + 4 orta + 3 zor** rastgele seçilir, sıraları karıştırılır (`QUESTION_MIX`, `lib/game/rules.ts`).
+- Havuz `data/questions.json` (şu an 50 soru). Oyunun kullandığı biçime `lib/game/questions.ts` çevirir.
 - Her soruda gerçek ve AI görselinin **A/B konumu rastgele** belirlenir; böylece cevap konumu ezberlenemez.
 - Bir soruya ikinci kez cevap verilemez; "Yeniden Oyna" yeni bir karışım üretir.
 
-Soru formatı:
+Soru formatı (`data/questions.json`):
 
 ```json
 {
   "id": "Q001",
-  "title": "Stüdyo Portresi: Hangisi Yapay Zekâ?",
-  "category": "İnsan Portresi",
-  "difficulty": "medium",
-  "description": "…",
-  "correctAnswer": "ai",
-  "options": [
-    { "id": "real", "imageUrl": "/images/questions/Q001/real.webp" },
-    { "id": "ai",   "imageUrl": "/images/questions/Q001/ai.webp" }
-  ],
-  "aiClues": ["…", "…"],
+  "category": "city",
+  "difficulty": "easy",
+  "realImage": "/images/questions/Q001/real.webp",
+  "aiImage": "/images/questions/Q001/ai.webp",
   "explanation": "…"
 }
 ```
+
+- `category`: `portrait`, `nature`, `animal`, `city`, `food`, `technology`, `architecture`, `art` (ekranda Türkçe görünür).
+- `difficulty`: `easy`, `medium` veya `hard`.
+- Görseller: `public/images/questions/QXXX/` altında `real.webp` ve `ai.webp`, en fazla 1080×1080 px. Bir sorudaki iki görsel **aynı boyutta** olmalı; biri daha bulanık olursa cevabı ele verir.
 
 ### Süreli mod ve skor
 
@@ -377,8 +376,6 @@ GET  /api/admin/export?token=…                 CSV
 
 ## 🚀 Yol Haritası
 
-- **Soru havuzu:** şu an 3 soru var; oyuncular cevapları ezberlemesin diye en az 30, mümkünse 50–60 soru.
-- **Soru sayısı ve zorluk dağılımı:** her oyunda sabit 10 soru (ör. 3 kolay + 4 orta + 3 zor). Şu an `selectQuestions` zorluğa bakmadan tüm havuzu karıştırıyor.
 - **Düello modu:** aynı ekranda iki oyuncu (1. oyuncu A/S, 2. oyuncu K/L). Seçimler gizli kilitlenir, birlikte açıklanır; ilk doğru cevaplayana bonus. Backend `mode: "duel"` için hazır.
 - **Soru istatistikleri:** `/admin`'deki soru bazlı doğruluk oranlarına göre zorluk etiketlerini düzeltme.
 - Diğer fikirler: takım modu, turnuva (eleme), paylaşılabilir skor kartı (PNG), fiziksel arcade butonu (klavye gibi davranır, kod değişmez).

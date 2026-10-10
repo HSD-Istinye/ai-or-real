@@ -45,7 +45,7 @@ const SURNAMES = ['Y.', 'K.', 'A.', 'Ş.', 'Ö.', 'T.', 'D.', 'Ç.', 'Kaya', 'De
 // lib/game/rules.ts + calculateScore.ts ile aynı formül (sahte veri için kopyası)
 const LIMIT = { easy: 5000, medium: 6000, hard: 8000 };
 function points(correct, ms, streak, limit) {
-  if (!correct || ms < 400 || ms > limit) return 0;
+  if (!correct || ms < 250 || ms > limit) return 0;
   const mult = Math.min(1 + streak * 0.1, 1.5);
   return Math.round((500 + 500 * (1 - ms / limit)) * mult);
 }
@@ -66,7 +66,7 @@ db.transaction(() => {
     const id = crypto.randomUUID();
     const nick = `${NAMES[Math.floor(Math.random() * NAMES.length)]} ${SURNAMES[Math.floor(Math.random() * SURNAMES.length)]}`;
     const skill = 0.35 + Math.random() * 0.6; // oyuncunun doğru bilme olasılığı
-    const qs = [...questions].sort(() => Math.random() - 0.5);
+    const qs = [...questions].sort(() => Math.random() - 0.5).slice(0, 10);
     let streak = 0, maxStreak = 0, score = 0, correct = 0;
     const times = [];
     const answers = qs.map((q, idx) => {
@@ -78,7 +78,7 @@ db.transaction(() => {
       maxStreak = Math.max(maxStreak, streak);
       score += p;
       if (ok) { correct++; times.push(ms); }
-      return [idx, q.id, ok ? q.correctAnswer : q.correctAnswer === 'ai' ? 'real' : 'ai', ok ? 1 : 0, ms, p];
+      return [idx, q.id, ok ? 'ai' : 'real', ok ? 1 : 0, ms, p]; // doğru cevap her zaman 'ai'
     });
     const avg = times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : null;
     const at = new Date(start.getTime() + Math.random() * span).toISOString();
