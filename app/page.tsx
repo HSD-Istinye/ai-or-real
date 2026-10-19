@@ -39,7 +39,7 @@ export default function HomePage() {
 
       <section className="home-hero" aria-labelledby="home-title">
         <div className="home-hero-copy">
-          <div className="home-kicker"><span /> GÖZÜNE GÜVENİYOR MUSUN?</div>
+          <div className="home-kicker"><span /> GÖZLERİNE GÜVENİYOR MUSUN?</div>
           <h1 id="home-title">Gerçeği bul.<br /><span>Yapay zekâyı yakala.</span></h1>
           <p className="home-intro">
             İki görsel, tek doğru cevap. Ayrıntılara bak, sezgini kullan ve hangisinin yapay zekâ
@@ -47,11 +47,10 @@ export default function HomePage() {
           </p>
           <div className="home-actions">
             <Link href="/game" className="home-play-link">
-              <Button variant="primary" size="lg" rightIcon={<ArrowRight size={19} />}>
+              <Button className="home-play-button" variant="primary" size="lg" rightIcon={<ArrowRight size={23} />}>
                 Oyuna başla
               </Button>
             </Link>
-            <span className="home-time-note"><Timer size={15} /> 3 tur · Ücretsiz</span>
           </div>
           <a className="home-how-link" href="#nasil-oynanir">
             Nasıl oynanır? <ArrowDown size={15} />

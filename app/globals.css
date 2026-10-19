@@ -1208,6 +1208,27 @@ body::after {
   color: #656979;
 }
 
+/* Landing page readability and primary action emphasis. */
+.home-brand,
+.home-hero-copy .home-kicker,
+.home-how-link,
+.home-how-link:hover {
+  color: #fff !important;
+}
+
+.home-brand strong,
+.home-brand-mark {
+  color: #49356f !important;
+}
+
+.home-play-link .home-play-button {
+  min-height: 96px;
+  padding: 30px 60px !important;
+  border-radius: 20px;
+  font-size: 1.7rem !important;
+  gap: 14px;
+}
+
 .result-page {
   width: min(800px, 100%);
 }
