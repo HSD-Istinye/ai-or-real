@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Sparkles, ExternalLink, RefreshCw } from 'lucide-react';
 import { LangToggle, useLang } from '@/lib/i18n';
+import { startAccessPolling } from '@/lib/net/accessPolling';
 
 type Session = { qr: string; url: string; expiresAt: number; unlocked: boolean };
 export default function AccessScreen() {
@@ -34,22 +35,27 @@ export default function AccessScreen() {
   }, []);
   useEffect(() => {
     if (!session) return;
-    let stopped = false;
-    let timer: ReturnType<typeof setTimeout>;
-    const poll = async () => {
-      try {
-        if (!document.hidden) {
-          const res = await fetch('/api/access', { cache: 'no-store' });
-          if (!res.ok) throw new Error('status');
-          const status = await res.json();
-          if (!stopped && status.unlocked) { window.location.replace('/'); return; }
-          if (!stopped) setError(false);
-        }
-      } catch { if (!stopped) setError(true); }
-      if (!stopped) timer = setTimeout(poll, 2500);
+    const polling = startAccessPolling({
+      visible: () => !document.hidden,
+      check: async (signal) => {
+        const res = await fetch('/api/access', { cache: 'no-store', signal });
+        if (!res.ok) throw new Error('status');
+        return (await res.json()).unlocked === true;
+      },
+      onError: setError,
+      onUnlocked: () => window.location.replace('/'),
+    });
+    const onVisibility = () => document.hidden ? polling.pause() : polling.resume();
+    const onReturn = () => { if (!document.hidden) polling.resume(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pageshow', onReturn);
+    window.addEventListener('online', onReturn);
+    return () => {
+      polling.stop();
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pageshow', onReturn);
+      window.removeEventListener('online', onReturn);
     };
-    void poll();
-    return () => { stopped = true; clearTimeout(timer); };
   }, [session]);
   return (
     <section className="glass-panel access-screen">

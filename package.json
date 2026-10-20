@@ -10,7 +10,7 @@
     "seed": "node scripts/seed.mjs",
     "backup": "node scripts/backup.mjs",
     "migrate:sqlite": "node scripts/migrate-sqlite.mjs",
-    "test": "node --conditions=react-server --import tsx --test tests/database.test.ts"
+    "test": "node --conditions=react-server --import tsx --test tests/database.test.ts tests/accessPolling.test.ts"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
