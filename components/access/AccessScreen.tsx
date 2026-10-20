@@ -69,13 +69,13 @@ export default function AccessScreen() {
       {session && <>
         <span className="access-target">linktr.ee/hsdistinye</span>
         <a className="btn btn-primary" href={session.url} target="_blank" rel="noopener noreferrer">
-          <ExternalLink size={18} />{en ? 'Open on this phone' : 'Bu telefonda bağlantıyı aç'}
+          <ExternalLink size={18} />{en ? 'Open link' : 'Bağlantıyı aç'}
         </a>
-        <p className="access-note">{en ? 'On a phone? Open the link, then return to this tab. QR codes expire after 15 minutes.' : 'Telefondaysan bağlantıyı açtıktan sonra bu sekmeye dön. QR kodu 15 dakika geçerlidir.'}</p>
+        <p className="access-note">{en ? 'QR code is valid for 15 minutes.' : 'QR kodu 15 dakika geçerlidir.'}</p>
       </>}
-      <div role="status" className="access-note">{error
-        ? (en ? 'Connection failed. Please try again.' : 'Bağlantı kurulamadı. Lütfen tekrar dene.')
-        : (session ? (en ? 'Waiting for the link to open…' : 'Bağlantının açılması bekleniyor…') : '')}</div>
+      {error && <div role="status" className="access-note">
+        {en ? 'Connection failed. Please try again.' : 'Bağlantı kurulamadı. Lütfen tekrar dene.'}
+      </div>}
       <button className="btn btn-secondary" onClick={renew} disabled={busy}>
         <RefreshCw size={16} />{en ? 'Create a new QR' : 'Yeni QR oluştur'}
       </button>
