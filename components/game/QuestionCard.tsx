@@ -50,7 +50,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
   return (
     <div
-      className="glass-panel question-panel"
+      className={`glass-panel question-panel${compact ? ' question-panel-compact' : ''}`}
       style={{
         width: '100%',
         padding: '24px',
@@ -118,6 +118,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       <div style={{ position: 'relative', width: '100%' }}>
       <div
         ref={imagesRef}
+        className="question-options"
         style={{
           display: 'flex',
           gap: '20px',

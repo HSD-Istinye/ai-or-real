@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Bot, Camera, CheckCircle2, XCircle } from 'lucide-react';
 import { QuestionOption, OptionType } from '@/types/question';
@@ -36,6 +36,8 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
   showSourceDescription = true,
 }) => {
   const t = useT();
+  const touch = useRef<{ id: number; x: number; y: number; time: number } | null>(null);
+  useEffect(() => { touch.current = null; }, [option.imageUrl, disabled, isRevealed]);
   const isAi = option.id === 'ai';
   const isCorrectChoice = option.id === targetAnswer;
 
@@ -69,15 +71,33 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
   return (
     <div
       className="image-option"
-      // click yerine pointerdown: fare BASILDIĞI an sayılır (click bırakınca tetiklenir, +80–150 ms)
+      // Mouse responds immediately; touch waits for release to distinguish a tap from scrolling.
       onPointerDown={(e) => {
-        if (e.button !== 0) return;
-        if (!disabled && !isRevealed) {
-          onSelect(e.timeStamp);
+        touch.current = null;
+        if (e.button !== 0 || !e.isPrimary || disabled || isRevealed) return;
+        if (e.pointerType === 'mouse') onSelect(e.timeStamp);
+        else touch.current = { id: e.pointerId, x: e.clientX, y: e.clientY, time: e.timeStamp };
+      }}
+      onPointerMove={(e) => {
+        const start = touch.current;
+        if (start && start.id === e.pointerId && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) touch.current = null;
+      }}
+      onPointerUp={(e) => {
+        const start = touch.current;
+        touch.current = null;
+        if (!start || start.id !== e.pointerId || disabled || isRevealed) return;
+        const bounds = e.currentTarget.getBoundingClientRect();
+        if (e.clientX < bounds.left || e.clientX > bounds.right || e.clientY < bounds.top || e.clientY > bounds.bottom) return;
+        if (Math.hypot(e.clientX - start.x, e.clientY - start.y) <= 10 && e.timeStamp - start.time < 500) {
+          onSelect(start.time);
         }
       }}
+      onPointerCancel={() => { touch.current = null; }}
+      onPointerLeave={() => { touch.current = null; }}
       style={{
         position: 'relative',
+        touchAction: 'pan-y pinch-zoom',
+        userSelect: 'none',
         flex: '1 1 300px',
         maxWidth: '560px',
         borderRadius: 'var(--radius-lg)',
@@ -173,6 +193,7 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
 
       {/* Image Container */}
       <div
+        className="image-option-frame"
         style={{
           position: 'relative',
           width: '100%',
@@ -188,6 +209,7 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
           fill
           sizes="(max-width: 768px) 100vw, 50vw"
           priority
+          draggable={false}
           style={{
             objectFit: 'cover',
             transition: 'transform 0.4s ease',

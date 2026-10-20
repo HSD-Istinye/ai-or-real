@@ -1594,3 +1594,66 @@ body::after {
     font-size: 1.45rem !important;
   }
 }
+
+/* Keep both timed choices visible together on phones, including landscape. */
+@media (max-width: 900px) {
+  .question-panel-compact .question-options {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px !important;
+  }
+
+  .question-panel-compact .image-option-frame {
+    aspect-ratio: 1 / 1 !important;
+    max-height: min(44svh, 320px) !important;
+  }
+
+  .question-panel-compact .image-option img {
+    object-fit: contain !important;
+  }
+
+  .question-panel-compact {
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+
+  .question-panel-compact h2 {
+    font-size: 1.15rem !important;
+  }
+
+  .question-panel-compact .image-option-label {
+    top: 6px !important;
+    left: 6px !important;
+    padding: 4px 7px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .question-panel-compact .image-option > .animate-pop-in {
+    top: auto !important;
+    bottom: 6px !important;
+    right: 6px !important;
+    padding: 4px 6px !important;
+    font-size: 0.65rem !important;
+  }
+
+  .question-panel-compact .image-option-frame > .animate-pop-in {
+    bottom: 34px !important;
+    left: 6px !important;
+    padding: 4px 6px !important;
+    font-size: 0.65rem !important;
+  }
+}
+
+@media (pointer: coarse) {
+  .image-option-label kbd { display: none; }
+  .image-option:hover,
+  .image-option:hover img { transform: none !important; }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  main:has(.game-shell) { padding: 8px !important; }
+  .game-shell { gap: 8px !important; }
+  .game-header { padding: 8px 12px !important; gap: 6px !important; }
+  .question-panel-compact { gap: 6px !important; padding: 8px !important; }
+  .question-panel-compact .image-option-frame { max-height: 35svh !important; }
+}
