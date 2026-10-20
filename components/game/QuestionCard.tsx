@@ -138,7 +138,6 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             targetAnswer={question.correctAnswer}
             disabled={isRevealed}
             onSelect={(ts) => onSelectOption(option.id, ts)}
-            keyHint={idx === 0 ? '←' : '→'}
             maxImageHeight={compact ? 'max(240px, calc(100vh - 360px))' : undefined}
             showSourceDescription={!compact}
           />
