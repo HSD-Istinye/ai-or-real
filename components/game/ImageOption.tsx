@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Bot, Camera, CheckCircle2, XCircle } from 'lucide-react';
+import { Bot, Camera } from 'lucide-react';
 import { QuestionOption, OptionType } from '@/types/question';
 import { useT } from '@/lib/i18n';
 
@@ -211,7 +211,7 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
           priority
           draggable={false}
           style={{
-            objectFit: 'cover',
+            objectFit: 'contain',
             transition: 'transform 0.4s ease',
             transform: !isRevealed && !disabled ? 'scale(1)' : 'none',
           }}
@@ -246,23 +246,6 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
           {option.sourceDescription}
         </div>
       )}
-      {/* Reserve a footer row so revealing the result does not shift the images. */}
-      <div
-        className="image-option-result"
-        style={{
-          background: isRevealed && isSelected
-            ? (isCorrectChoice ? 'var(--accent-green)' : 'var(--accent-red)')
-            : 'var(--bg-secondary)',
-          color: '#fff',
-        }}
-      >
-        {isRevealed && isSelected && (
-          <>
-            {isCorrectChoice ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-            <span>{isCorrectChoice ? t.game.yourPickCorrect : t.game.yourPickWrong}</span>
-          </>
-        )}
-      </div>
     </div>
   );
 };

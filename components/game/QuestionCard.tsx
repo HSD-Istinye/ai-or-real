@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, HelpCircle } from 'lucide-react';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import { Question, OptionType } from '@/types/question';
 import { ImageOption } from './ImageOption';
 import { useT } from '@/lib/i18n';
@@ -46,6 +46,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     }
   };
 
+  const selectionCorrect = selectedOption === question.correctAnswer;
   const diffBadge = getDifficultyBadge(question.difficulty);
 
   return (
@@ -158,6 +159,15 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           {overlay}
         </div>
       )}
+      </div>
+      <div className="question-selection-result" role="status"
+        style={{ color: selectionCorrect ? 'var(--accent-green)' : 'var(--accent-red)' }}>
+        {isRevealed && selectedOption !== null && (
+          <>
+            {selectionCorrect ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
+            <span>{selectionCorrect ? t.game.yourPickCorrect : t.game.yourPickWrong}</span>
+          </>
+        )}
       </div>
     </div>
   );
