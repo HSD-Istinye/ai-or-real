@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import QueueFlusher from '@/components/net/QueueFlusher';
+import { LangProvider } from '@/lib/i18n';
 
 export const metadata: Metadata = {
   title: 'Spot the AI | Yapay Zekayı Yakala',
@@ -19,6 +21,9 @@ export default function RootLayout({
       </head>
       <body>
         <div className="bg-grid-overlay" />
+        {/* Gönderilemeyen skorları arka planda tekrar gönderir (offline kuyruk) */}
+        <QueueFlusher />
+        <LangProvider>
         <main
           style={{
             minHeight: '100vh',
@@ -31,6 +36,7 @@ export default function RootLayout({
         >
           {children}
         </main>
+        </LangProvider>
       </body>
     </html>
   );

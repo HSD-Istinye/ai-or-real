@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Bot, Camera, CheckCircle2, XCircle } from 'lucide-react';
 import { QuestionOption, OptionType } from '@/types/question';
+import { useT } from '@/lib/i18n';
 
 interface ImageOptionProps {
   option: QuestionOption;
@@ -12,7 +13,14 @@ interface ImageOptionProps {
   isRevealed: boolean;
   targetAnswer: OptionType; // Which one was the correct answer (usually 'ai')
   disabled: boolean;
-  onSelect: () => void;
+  /** Basılma anının zaman damgasıyla çağrılır (event.timeStamp) — süre ölçümü için. */
+  onSelect: (eventTimeStamp: number) => void;
+  /** Klavye kısayolu ipucu, ör. "←" / "→" */
+  keyHint?: string;
+  /** Görselin en fazla yüksekliği (ör. ekrana sığması için) */
+  maxImageHeight?: string;
+  /** false → cevaptan sonra alt açıklama gösterilmez (süreli modda düzen kaymasın) */
+  showSourceDescription?: boolean;
 }
 
 export const ImageOption: React.FC<ImageOptionProps> = ({
@@ -23,7 +31,11 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
   targetAnswer,
   disabled,
   onSelect,
+  keyHint,
+  maxImageHeight,
+  showSourceDescription = true,
 }) => {
+  const t = useT();
   const isAi = option.id === 'ai';
   const isCorrectChoice = option.id === targetAnswer;
 
@@ -57,9 +69,11 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
   return (
     <div
       className="image-option"
-      onClick={() => {
+      // click yerine pointerdown: fare BASILDIĞI an sayılır (click bırakınca tetiklenir, +80–150 ms)
+      onPointerDown={(e) => {
+        if (e.button !== 0) return;
         if (!disabled && !isRevealed) {
-          onSelect();
+          onSelect(e.timeStamp);
         }
       }}
       style={{
@@ -72,7 +86,10 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
         backgroundColor: 'var(--bg-secondary)',
         overflow: 'hidden',
         cursor: disabled || isRevealed ? 'default' : 'pointer',
-        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        // 'all' olmasın: visibility de geçişe girer, gizlenen görseller 0.3 sn görünür kalır
+        transition: ['border-color', 'box-shadow', 'transform']
+          .map((p) => `${p} 0.3s cubic-bezier(0.16, 1, 0.3, 1)`)
+          .join(', '),
         transform: isSelected && !isRevealed ? 'scale(1.02)' : 'none',
       }}
     >
@@ -99,6 +116,20 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
         }}
       >
         <span>{label}</span>
+        {keyHint && (
+          <kbd
+            style={{
+              fontFamily: 'inherit',
+              fontSize: '0.8rem',
+              padding: '1px 7px',
+              borderRadius: 6,
+              border: '1px solid currentColor',
+              opacity: 0.85,
+            }}
+          >
+            {keyHint}
+          </kbd>
+        )}
       </div>
 
       {/* Revealed Status Badge */}
@@ -129,12 +160,12 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
           {isAi ? (
             <>
               <Bot size={16} />
-              <span>Yapay Zekâ (AI)</span>
+              <span>{t.game.aiBadge}</span>
             </>
           ) : (
             <>
               <Camera size={16} />
-              <span>Gerçek Fotoğraf</span>
+              <span>{t.game.realBadge}</span>
             </>
           )}
         </div>
@@ -146,13 +177,14 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
           position: 'relative',
           width: '100%',
           aspectRatio: '4 / 3',
+          maxHeight: maxImageHeight,
           overflow: 'hidden',
           backgroundColor: '#0c1322',
         }}
       >
         <Image
           src={option.imageUrl}
-          alt={option.label || label}
+          alt={label}
           fill
           sizes="(max-width: 768px) 100vw, 50vw"
           priority
@@ -188,12 +220,12 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
             {isCorrectChoice ? (
               <>
                 <CheckCircle2 size={18} />
-                <span>Senin Seçimin (Doğru!)</span>
+                <span>{t.game.yourPickCorrect}</span>
               </>
             ) : (
               <>
                 <XCircle size={18} />
-                <span>Senin Seçimin (Yanlış)</span>
+                <span>{t.game.yourPickWrong}</span>
               </>
             )}
           </div>
@@ -214,7 +246,7 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
       </div>
 
       {/* Bottom Description after Reveal */}
-      {isRevealed && option.sourceDescription && (
+      {isRevealed && showSourceDescription && option.sourceDescription && (
         <div
           className="animate-slide-up image-option-description"
           style={{

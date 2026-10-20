@@ -4,12 +4,23 @@ import React from 'react';
 import { Sparkles, HelpCircle } from 'lucide-react';
 import { Question, OptionType } from '@/types/question';
 import { ImageOption } from './ImageOption';
+import { useT } from '@/lib/i18n';
 
 interface QuestionCardProps {
   question: Question;
   selectedOption: OptionType | null;
   isRevealed: boolean;
-  onSelectOption: (optionId: OptionType) => void;
+  onSelectOption: (optionId: OptionType, eventTimeStamp: number) => void;
+  /** Görsellerin kapsayıcısı — süreli modda görünürlüğü doğrudan bu elemandan açılır. */
+  imagesRef?: React.Ref<HTMLDivElement>;
+  /** false → görseller yer kaplar ama görünmez (yüklenirken / beklerken) */
+  imagesVisible?: boolean;
+  /** Görsellerin üzerinde ortalanmış içerik ("Hazır ol…", tur sonucu) */
+  overlay?: React.ReactNode;
+  /** Görsellerin üstünde gösterilecek içerik (süre çubuğu) */
+  topSlot?: React.ReactNode;
+  /** true → uzun açıklama gizlenir (süreli modda okumaya vakit yok) */
+  compact?: boolean;
 }
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({
@@ -17,15 +28,21 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   selectedOption,
   isRevealed,
   onSelectOption,
+  imagesRef,
+  imagesVisible = true,
+  overlay,
+  topSlot,
+  compact = false,
 }) => {
+  const t = useT();
   const getDifficultyBadge = (diff: Question['difficulty']) => {
     switch (diff) {
       case 'easy':
-        return { label: 'Kolay', color: 'var(--accent-green)', bg: 'rgba(91, 150, 124, 0.13)' };
+        return { label: t.difficulty.easy, color: 'var(--accent-green)', bg: 'rgba(91, 150, 124, 0.13)' };
       case 'medium':
-        return { label: 'Orta', color: 'var(--accent-cyan)', bg: 'rgba(113, 141, 188, 0.13)' };
+        return { label: t.difficulty.medium, color: 'var(--accent-cyan)', bg: 'rgba(113, 141, 188, 0.13)' };
       case 'hard':
-        return { label: 'Zor', color: 'var(--accent-purple)', bg: 'rgba(141, 123, 180, 0.13)' };
+        return { label: t.difficulty.hard, color: 'var(--accent-purple)', bg: 'rgba(141, 123, 180, 0.13)' };
     }
   };
 
@@ -67,7 +84,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               color: 'var(--text-secondary)',
             }}
           >
-            {question.category}
+            {t.categories[question.category] ?? question.category}
           </span>
         </div>
 
@@ -79,42 +96,68 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             letterSpacing: '-0.01em',
           }}
         >
-          {question.title}
+          {t.whichIsAi}
         </h2>
 
-        <p
-          style={{
-            fontSize: '0.95rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.5,
-          }}
-        >
-          {question.description}
-        </p>
+        {!compact && (
+          <p
+            style={{
+              fontSize: '0.95rem',
+              color: 'var(--text-secondary)',
+              lineHeight: 1.5,
+            }}
+          >
+            {question.description}
+          </p>
+        )}
       </div>
 
+      {topSlot}
+
       {/* Image Options Grid */}
+      <div style={{ position: 'relative', width: '100%' }}>
       <div
+        ref={imagesRef}
         style={{
           display: 'flex',
           gap: '20px',
           justifyContent: 'center',
           flexWrap: 'wrap',
           width: '100%',
+          visibility: imagesVisible ? 'visible' : 'hidden',
         }}
       >
         {question.options.map((option, idx) => (
           <ImageOption
             key={option.id}
             option={option}
-            label={option.label || (idx === 0 ? 'Seçenek A' : 'Seçenek B')}
+            label={idx === 0 ? t.game.optionA : t.game.optionB}
             isSelected={selectedOption === option.id}
             isRevealed={isRevealed}
             targetAnswer={question.correctAnswer}
             disabled={isRevealed}
-            onSelect={() => onSelectOption(option.id)}
+            onSelect={(ts) => onSelectOption(option.id, ts)}
+            keyHint={idx === 0 ? '←' : '→'}
+            maxImageHeight={compact ? 'max(240px, calc(100vh - 360px))' : undefined}
+            showSourceDescription={!compact}
           />
         ))}
+      </div>
+      {overlay && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+            zIndex: 20,
+          }}
+        >
+          {overlay}
+        </div>
+      )}
       </div>
     </div>
   );

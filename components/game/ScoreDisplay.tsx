@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Flame, Trophy } from 'lucide-react';
+import { useT } from '@/lib/i18n';
 
 interface ScoreDisplayProps {
   score: number;
@@ -9,6 +10,7 @@ interface ScoreDisplayProps {
 }
 
 export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ score, streak }) => {
+  const t = useT();
   return (
     <div className="game-score" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
       {/* Streak Badge */}
@@ -30,7 +32,7 @@ export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ score, streak }) => 
           }}
         >
           <Flame size={18} color="#f59e0b" className="animate-pulse-glow" />
-          <span>{streak}x Seri</span>
+          <span>{t.game.streak(streak)}</span>
         </div>
       )}
 
@@ -53,7 +55,7 @@ export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ score, streak }) => 
         <Trophy size={18} color="var(--accent-cyan)" />
         <span style={{ color: 'var(--accent-cyan)' }}>{score}</span>
         <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
-          Puan
+          {t.game.score}
         </span>
       </div>
     </div>

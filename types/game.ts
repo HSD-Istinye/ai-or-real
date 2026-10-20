@@ -1,12 +1,30 @@
 import { Question, OptionType } from './question';
+import { Foul } from './api';
 
 export type GameStatus = 'idle' | 'playing' | 'answered' | 'finished';
 
+export type RankKey = 'novice' | 'developing' | 'observer' | 'detective';
+
+/**
+ * Bir turun aşamaları (süreli mod):
+ * loading → görseller arka planda yükleniyor
+ * wait    → "Hazır ol…" rastgele bekleme (erken basış = "Çok erken!")
+ * live    → görseller göründü, süre akıyor
+ * feedback→ sonuç gösteriliyor, kısa süre sonra sonraki tura geçilir
+ */
+export type RoundPhase = 'loading' | 'wait' | 'live' | 'feedback';
+
 export interface PlayerAnswer {
   questionId: string;
-  selectedOption: OptionType;
+  /** null = süre doldu */
+  selectedOption: OptionType | null;
   isCorrect: boolean;
+  /** görsellerin belirdiği andan cevaba kadar (ms) */
   timeSpentMs: number;
+  /** bu sorunun süre sınırı (ms) */
+  timeLimitMs?: number;
+  /** null | 'guess' (çok hızlı, tahmin) | 'timeout' (süre doldu) */
+  foul?: Foul | null;
   pointsEarned: number;
   streakAtAnswer: number;
 }
@@ -28,8 +46,15 @@ export interface GameSummary {
   accuracyPercentage: number;
   totalScore: number;
   maxStreak: number;
-  rankTitle: string;
-  rankBadge: string;
-  rankDescription: string;
+  /** Unvan; metni dile göre lib/i18n/dict.ts → ranks'tan gelir. */
+  rankKey: RankKey;
   answers: PlayerAnswer[];
+  /** Her sorunun ekrandaki dizilişi (soru id → [sol, sağ]); "Cevapları gör" aynı düzende gösterir. */
+  layouts?: Record<string, OptionType[]>;
+  /** Leaderboard kaydı için benzersiz oyun kimliği (UUID). Tekrar gönderimde aynı kalır. */
+  runId?: string;
+  /** Oyuncunun oyuna başlamadan önce girdiği isim. */
+  nick?: string;
+  /** Oyunun bittiği an (ISO 8601). */
+  playedAt?: string;
 }
