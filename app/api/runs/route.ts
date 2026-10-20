@@ -1,3 +1,4 @@
+import { requireGameAccess } from '@/lib/server/access-http';
 import { NextResponse } from 'next/server';
 import { insertRun } from '@/lib/server/runs';
 import { handleError, jsonError } from '@/lib/server/http';
@@ -11,6 +12,8 @@ export const dynamic = 'force-dynamic';
  * 201 → yeni kayıt, 200 → aynı id daha önce kaydedilmiş (idempotent).
  */
 export async function POST(req: Request) {
+  const denied = await requireGameAccess();
+  if (denied) return denied;
   let body: unknown;
   try {
     body = await req.json();

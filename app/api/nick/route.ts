@@ -1,3 +1,4 @@
+import { requireGameAccess } from '@/lib/server/access-http';
 import { NextResponse } from 'next/server';
 import { normalizeNick } from '@/lib/server/validate';
 import { isNickTakenToday } from '@/lib/server/runs';
@@ -14,6 +15,8 @@ export const dynamic = 'force-dynamic';
  * mine: true → isim bu tarayıcı oturumunda zaten bu oyuncunundu (kendi ismiyle tekrar oynuyor)
  */
 export async function POST(req: Request) {
+  const denied = await requireGameAccess();
+  if (denied) return denied;
   const body = (await req.json().catch(() => null)) as { nick?: unknown; mine?: unknown } | null;
   if (!body) return jsonError(400, 'Geçersiz JSON');
   try {

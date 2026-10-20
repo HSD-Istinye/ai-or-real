@@ -1669,3 +1669,21 @@ body::after {
   flex-direction: row !important;
   gap: 6px !important;
 }
+
+.access-screen {
+  width: min(460px, 100%);
+  padding: clamp(18px, 4vw, 32px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.access-heading { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.access-heading > span { display: flex; align-items: center; gap: 6px; color: #49356f; font-weight: 800; }
+.access-screen h1 { font-size: clamp(1.5rem, 6vw, 2rem); }
+.access-screen p { color: var(--text-secondary); line-height: 1.6; }
+.access-qr { width: min(320px, 100%); aspect-ratio: 1; background: white; border-radius: 18px; overflow: hidden; display: grid; place-items: center; }
+.access-qr img { width: 100%; height: auto; display: block; }
+.access-target, .access-note { font-size: 0.8rem; color: var(--text-secondary); }
+.access-screen .btn { display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 44px; width: 100%; text-decoration: none; }

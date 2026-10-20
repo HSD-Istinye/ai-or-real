@@ -78,6 +78,25 @@ test('PostgreSQL schema, scoring, duplicate submission, ranking, stats and admin
     await db.exec('SET ROLE anon');
     await assert.rejects(() => db.query('SELECT * FROM game.run'), /permission denied/);
     await db.exec('RESET ROLE');
+    await db.exec(readFileSync('lib/server/access-schema.sql', 'utf8'));
+    const gate = await import('../lib/server/access');
+    const firstAccess = await gate.createAccess();
+    const otherAccess = await gate.createAccess();
+    assert.equal((await gate.accessStatus(firstAccess.session)).unlocked, false);
+    assert.equal(await gate.unlockAccess(firstAccess.session), false); // Cookie cannot stand in for QR.
+    assert.equal(await gate.unlockAccess('invalid'), false);
+    assert.equal(await gate.unlockAccess(firstAccess.scan), true);
+    assert.equal((await gate.accessStatus(firstAccess.session)).unlocked, true);
+    assert.equal((await gate.accessStatus(otherAccess.session)).unlocked, false);
+    const renewed = await gate.createAccess(otherAccess.session);
+    assert.equal(await gate.unlockAccess(otherAccess.scan), false);
+    assert.equal(await gate.unlockAccess(renewed.scan), true);
+    await db.exec("UPDATE game.access_session SET expires_at = now() - interval '1 second'");
+    assert.equal((await gate.accessStatus(firstAccess.session)).unlocked, false);
+    assert.equal(await gate.unlockAccess(firstAccess.scan), false);
+    await db.exec('SET ROLE anon');
+    await assert.rejects(() => db.query('SELECT * FROM game.access_session'), /permission denied/);
+    await db.exec('RESET ROLE');
   } finally {
     delete globals.__hsdPostgres;
     await db.close();

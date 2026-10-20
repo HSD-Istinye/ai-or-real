@@ -111,3 +111,22 @@ Kaynaklar:
 - https://supabase.com/docs/guides/database/postgres-js
 - https://supabase.com/docs/guides/database/connecting-to-postgres
 - https://vercel.com/docs/environment-variables
+
+## QR ile giriş
+
+Ana sayfa, isim girişi, oyun ve sonuç ekranları QR erişim kontrolüyle korunur.
+Kurulumda `lib/server/schema.sql` ardından `lib/server/access-schema.sql`
+Supabase SQL Editor içinde çalıştırılmalıdır. Mevcut veriler silinmez.
+
+- Her tarayıcı için ayrı, HttpOnly çerezli oturum oluşturulur.
+- QR bağlantısı 15 dakika geçerlidir; yenileme önceki QR'ı geçersiz kılar.
+- QR bağlantısı açıldığında yalnızca onu oluşturan tarayıcının kilidi açılır.
+- Okutan kişi `https://linktr.ee/hsdistinye` adresine yönlendirilir.
+- Telefonda aynı bağlantı düğmeyle yeni sekmede açılır; oyuncu oyun sekmesine döner.
+- Erişim 24 saat geçerlidir. QR açılması doğrulanır; Linktree'de takip/kayıt yapılması doğrulanmaz.
+- Admin, sağlık kontrolü ve TV sıralama ekranı QR zorunluluğundan muaftır.
+- Gerçek telefonla denemek için canlı HTTPS adresini kullanın; localhost QR'ı başka telefondan bilgisayarınıza ulaşmaz.
+
+Hedef adres `lib/server/access.ts` içindeki `QR_TARGET` ile değiştirilir.
+Yeni bir ortam değişkeni gerekmez. Bekleyen skorlar QR erişimi sona erdiğinde
+silinmez, erişim tekrar açılınca gönderilir.

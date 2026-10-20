@@ -53,7 +53,7 @@ export async function submitRun(run: SubmitRunRequest): Promise<SubmitRunRespons
     return res;
   } catch (err) {
     // 4xx = kayıt hatalı, tekrar denemenin anlamı yok → kuyruktan at
-    if (err instanceof ApiRequestError && err.status >= 400 && err.status < 500) {
+    if (err instanceof ApiRequestError && err.status >= 400 && err.status < 500 && err.status !== 403) {
       remove(run.id);
       throw err;
     }
@@ -75,7 +75,7 @@ export async function flushQueue(): Promise<number> {
         remove(run.id);
         sent++;
       } catch (err) {
-        if (err instanceof ApiRequestError && err.status >= 400 && err.status < 500) {
+        if (err instanceof ApiRequestError && err.status >= 400 && err.status < 500 && err.status !== 403) {
           remove(run.id); // bozuk kayıt, kuyruğu tıkamasın
           continue;
         }
