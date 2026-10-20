@@ -85,4 +85,5 @@ export interface QuestionStat {
 export interface ApiError {
   ok: false;
   error: string;
+  code?: string; // ör. 'nick_blocked' — arayüz kendi dilinde mesaj gösterir
 }

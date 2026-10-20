@@ -20,10 +20,15 @@ const FOULS: Foul[] = ['early', 'guess', 'timeout'];
 const MAX_ANSWERS = 30;
 const MAX_REACTION_MS = 120_000;
 
-export class ValidationError extends Error {}
+/** code: istemcinin mesajı kendi dilinde göstermesi için (ör. 'nick_blocked'). */
+export class ValidationError extends Error {
+  constructor(message: string, public code?: string) {
+    super(message);
+  }
+}
 
-function fail(msg: string): never {
-  throw new ValidationError(msg);
+function fail(msg: string, code?: string): never {
+  throw new ValidationError(msg, code);
 }
 
 /** İsmi normalize eder: baştaki/sondaki boşlukları atar, çoklu boşlukları teke indirir. */
@@ -31,10 +36,10 @@ export function normalizeNick(raw: unknown): string {
   if (typeof raw !== 'string') fail('isim gerekli');
   const nick = raw.normalize('NFC').trim().replace(/\s+/g, ' ').slice(0, NICK_MAX).trim();
   if (nick === '???') return nick; // isimsiz oyuncu
-  if (!nick) fail('isim boş olamaz');
-  if (!NICK_RE.test(nick)) fail('isim sadece harf, rakam, boşluk ve . _ - içerebilir');
-  if (!/\p{L}/u.test(nick)) fail('isim en az bir harf içermeli');
-  if (isBlockedNick(nick)) fail('Bu isim kullanılamaz, başka bir isim dene');
+  if (!nick) fail('isim boş olamaz', 'nick_empty');
+  if (!NICK_RE.test(nick)) fail('isim sadece harf, rakam, boşluk ve . _ - içerebilir', 'nick_chars');
+  if (!/\p{L}/u.test(nick)) fail('isim en az bir harf içermeli', 'nick_letter');
+  if (isBlockedNick(nick)) fail('Bu isim kullanılamaz, başka bir isim dene', 'nick_blocked');
   return nick;
 }
 

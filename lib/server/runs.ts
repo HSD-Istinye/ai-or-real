@@ -57,6 +57,15 @@ export function nickKey(nick: string): string {
   return nick.toLocaleLowerCase('tr-TR').replace(/\s+/g, ' ').trim();
 }
 
+/** Bu isim bugün (gece yarısından beri) gizlenmemiş bir oyunda kullanıldı mı? Her gün sıfırlanır. */
+export function isNickTakenToday(nick: string): boolean {
+  if (nick === '???') return false;
+  const row = getDb()
+    .prepare(`SELECT 1 FROM run WHERE hidden = 0 AND nick_key = ? AND created_at >= ? LIMIT 1`)
+    .get(nickKey(nick), scopeSince('today'));
+  return !!row;
+}
+
 /* ───────────────────────── skor hesaplama ───────────────────────── */
 
 /**

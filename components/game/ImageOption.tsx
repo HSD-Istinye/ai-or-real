@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Bot, Camera, CheckCircle2, XCircle } from 'lucide-react';
 import { QuestionOption, OptionType } from '@/types/question';
+import { useT } from '@/lib/i18n';
 
 interface ImageOptionProps {
   option: QuestionOption;
@@ -34,6 +35,7 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
   maxImageHeight,
   showSourceDescription = true,
 }) => {
+  const t = useT();
   const isAi = option.id === 'ai';
   const isCorrectChoice = option.id === targetAnswer;
 
@@ -158,12 +160,12 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
           {isAi ? (
             <>
               <Bot size={16} />
-              <span>Yapay Zekâ (AI)</span>
+              <span>{t.game.aiBadge}</span>
             </>
           ) : (
             <>
               <Camera size={16} />
-              <span>Gerçek Fotoğraf</span>
+              <span>{t.game.realBadge}</span>
             </>
           )}
         </div>
@@ -182,7 +184,7 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
       >
         <Image
           src={option.imageUrl}
-          alt={option.label || label}
+          alt={label}
           fill
           sizes="(max-width: 768px) 100vw, 50vw"
           priority
@@ -218,12 +220,12 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
             {isCorrectChoice ? (
               <>
                 <CheckCircle2 size={18} />
-                <span>Senin Seçimin (Doğru!)</span>
+                <span>{t.game.yourPickCorrect}</span>
               </>
             ) : (
               <>
                 <XCircle size={18} />
-                <span>Senin Seçimin (Yanlış)</span>
+                <span>{t.game.yourPickWrong}</span>
               </>
             )}
           </div>

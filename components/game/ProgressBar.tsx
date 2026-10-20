@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useT } from '@/lib/i18n';
 
 interface ProgressBarProps {
   current: number;
@@ -8,6 +9,7 @@ interface ProgressBarProps {
 }
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({ current, total }) => {
+  const t = useT();
   const percentage = Math.min(Math.round((current / total) * 100), 100);
 
   return (
@@ -22,9 +24,9 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ current, total }) => {
         }}
       >
         <span>
-          İlerleme: <strong style={{ color: 'var(--text-primary)' }}>{current}</strong> / {total}
+          {t.game.progress} <strong style={{ color: 'var(--text-primary)' }}>{current}</strong> / {total}
         </span>
-        <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>%{percentage}</span>
+        <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>{t.percent(percentage)}</span>
       </div>
 
       <div

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { LeaderboardRow } from '@/types/api';
+import { useT } from '@/lib/i18n';
 
 /**
  * Liderlik tablosu satırları — hem /leaderboard sayfasında hem oyun sonu ekranında kullanılır.
@@ -13,9 +14,6 @@ import { LeaderboardRow } from '@/types/api';
  */
 const MEDALS = ['🥇', '🥈', '🥉'];
 
-function fmtSec(ms: number | null) {
-  return ms === null ? '—' : `${(ms / 1000).toFixed(2)} sn`;
-}
 
 interface Props {
   rows: LeaderboardRow[];
@@ -34,8 +32,11 @@ export default function LeaderboardTable({
   fresh,
   extraRow,
   size = 'lg',
-  emptyText = 'Henüz kimse oynamadı. İlk sen ol!',
+  emptyText,
 }: Props) {
+  const t = useT();
+  const b = t.board;
+  const fmtSec = (ms: number | null) => (ms === null ? '—' : `${(ms / 1000).toFixed(2)} ${t.sec}`);
   const big = size === 'lg';
   const key = (n: string) => n.toLocaleLowerCase('tr-TR').replace(/\s+/g, ' ').trim();
   const isMine = (r: LeaderboardRow) =>
@@ -65,8 +66,8 @@ export default function LeaderboardTable({
             whiteSpace: 'nowrap',
           }}
         >
-          {r.nick === '???' ? 'İsimsiz' : r.nick}
-          {mine && <span className="lb-you">SEN</span>}
+          {r.nick === '???' ? b.anonymous : r.nick}
+          {mine && <span className="lb-you">{b.you}</span>}
         </span>
         <span
           style={{
@@ -76,7 +77,7 @@ export default function LeaderboardTable({
             color: 'var(--accent-cyan)',
           }}
         >
-          {r.score.toLocaleString('tr-TR')}
+          {r.score.toLocaleString(b.locale)}
         </span>
         <span className="lb-hide-sm" style={{ textAlign: 'right', fontSize: big ? '1.1rem' : '0.95rem', color: 'var(--text-secondary)' }}>
           {r.correct}/{r.total}
@@ -109,16 +110,16 @@ export default function LeaderboardTable({
       `}</style>
 
       <div className="lb-row lb-head">
-        <span>SIRA</span>
-        <span>OYUNCU</span>
-        <span style={{ textAlign: 'right' }}>PUAN</span>
-        <span className="lb-hide-sm" style={{ textAlign: 'right' }}>DOĞRU</span>
-        <span className="lb-hide-sm" style={{ textAlign: 'right' }}>ORT. SÜRE</span>
+        <span>{b.colRank}</span>
+        <span>{b.colPlayer}</span>
+        <span style={{ textAlign: 'right' }}>{b.colScore}</span>
+        <span className="lb-hide-sm" style={{ textAlign: 'right' }}>{b.colCorrect}</span>
+        <span className="lb-hide-sm" style={{ textAlign: 'right' }}>{b.colAvg}</span>
       </div>
 
       {rows.length === 0 && !extraRow && (
         <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
-          {emptyText}
+          {emptyText ?? b.empty}
         </div>
       )}
 

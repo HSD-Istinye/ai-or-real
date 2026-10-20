@@ -11,7 +11,8 @@ import {
 const TIMEOUT_MS = 5000;
 
 export class ApiRequestError extends Error {
-  constructor(public status: number, message: string) {
+  /** code: sunucunun hata kodu (ör. 'nick_blocked'); arayüz mesajı kendi dilinde gösterir. */
+  constructor(public status: number, message: string, public code?: string) {
     super(message);
   }
 }
@@ -28,8 +29,8 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
     });
     const data = (await res.json().catch(() => null)) as T | ApiError | null;
     if (!res.ok) {
-      const msg = data && typeof data === 'object' && 'error' in data ? data.error : `HTTP ${res.status}`;
-      throw new ApiRequestError(res.status, msg);
+      const err = data && typeof data === 'object' && 'error' in data ? data : null;
+      throw new ApiRequestError(res.status, err ? err.error : `HTTP ${res.status}`, err?.code);
     }
     return data as T;
   } finally {
@@ -51,6 +52,7 @@ export function getStats(scope: Scope = 'today', score?: number, mode: GameMode 
 }
 
 /** Oyuna başlamadan önce ismi sunucuda kontrol eder (uygunsuz isim filtresi). */
-export function checkNick(nick: string) {
-  return request<{ ok: true; nick: string }>('/api/nick', { method: 'POST', body: JSON.stringify({ nick }) });
+/** mine: isim bu oturumda zaten bu oyuncunundu → "bugün alınmış" kontrolü atlanır */
+export function checkNick(nick: string, mine = false) {
+  return request<{ ok: true; nick: string }>('/api/nick', { method: 'POST', body: JSON.stringify({ nick, mine }) });
 }

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Sparkles, X } from 'lucide-react';
 import { ProgressBar } from './ProgressBar';
 import { ScoreDisplay } from './ScoreDisplay';
+import { useT } from '@/lib/i18n';
 
 interface GameHeaderProps {
   currentIndex: number;
@@ -21,6 +22,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
   streak,
   onQuit,
 }) => {
+  const t = useT();
   return (
     <header
       className="game-header"
@@ -74,7 +76,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
               SPOT THE <span className="gradient-text-cyan">AI</span>
             </h1>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Yapay Zekayı Yakala
+              {t.game.subtitle}
             </span>
           </div>
         </div>
@@ -86,7 +88,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
           {onQuit ? (
             <button
               onClick={onQuit}
-              title="Oyundan Çık"
+              title={t.game.quit}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -106,7 +108,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
           ) : (
             <Link
               href="/"
-              title="Ana Sayfaya Dön"
+              title={t.game.home}
               style={{
                 display: 'flex',
                 alignItems: 'center',
