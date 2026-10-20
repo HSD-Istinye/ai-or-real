@@ -373,7 +373,7 @@ body::after {
   padding: 8px 0 24px;
   display: flex;
   flex-direction: column;
-  gap: 46px;
+  gap: 22px;
 }
 
 .home-nav,
@@ -387,8 +387,24 @@ body::after {
 }
 
 .home-nav {
+  position: relative;
   justify-content: space-between;
   min-height: 42px;
+  align-items: flex-start;
+}
+
+.home-nav-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  z-index: 2;
+}
+
+.home-nav-note {
+  margin-top: 12px;
 }
 
 .home-brand {
@@ -429,9 +445,10 @@ body::after {
 .home-hero {
   display: grid;
   grid-template-columns: 1fr 0.92fr;
-  align-items: center;
+  align-items: start;
   gap: clamp(36px, 6vw, 80px);
-  padding: 22px 0 0;
+  margin-top: -22px;
+  padding: 0;
 }
 
 .home-hero-copy {
@@ -497,6 +514,27 @@ body::after {
   text-decoration: none;
 }
 
+.home-follow-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 16px;
+  background: #fff;
+  color: #30323d;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.home-follow-qr img {
+  display: block;
+  width: 176px;
+  height: 176px;
+  object-fit: contain;
+}
+
 .home-time-note,
 .home-how-link {
   display: inline-flex;
@@ -520,6 +558,7 @@ body::after {
 
 .home-demo {
   position: relative;
+  margin-top: 184px;
   padding: 21px;
   overflow: hidden;
   border: 1px solid rgba(245, 241, 232, 0.12);
@@ -737,8 +776,18 @@ body::after {
 
   .home-hero {
     grid-template-columns: 1fr;
+    align-items: center;
     gap: 30px;
+    margin-top: 0;
     padding-top: 4px;
+  }
+
+  .home-nav-right {
+    position: static;
+  }
+
+  .home-demo {
+    margin-top: 0;
   }
 
   .home-hero h1 {
@@ -751,6 +800,14 @@ body::after {
 
   .home-actions {
     margin-top: 21px;
+  }
+
+  .home-nav-right {
+    gap: 0;
+  }
+
+  .home-nav-note {
+    display: none;
   }
 
   .home-demo {
@@ -969,9 +1026,20 @@ body::after {
 }
 
 @media (max-width: 420px) {
-  .home-nav-note,
   .home-demo-stamp {
     display: none;
+  }
+
+  .home-follow-qr {
+    gap: 4px;
+    padding: 6px;
+    border-radius: 12px;
+    font-size: 0.62rem;
+  }
+
+  .home-follow-qr img {
+    width: 108px;
+    height: 108px;
   }
 
   .home-play-link,
@@ -1222,11 +1290,11 @@ body::after {
 }
 
 .home-play-link .home-play-button {
-  min-height: 96px;
-  padding: 30px 60px !important;
-  border-radius: 20px;
-  font-size: 1.7rem !important;
-  gap: 14px;
+  min-height: 180px;
+  padding: 55px 120px !important;
+  border-radius: 32px;
+  font-size: 3.5rem !important;
+  gap: 24px;
 }
 
 .result-page {

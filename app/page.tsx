@@ -34,7 +34,18 @@ export default function HomePage() {
           <span className="home-brand-mark"><Sparkles size={19} /></span>
           <span>spot the <strong>ai</strong></span>
         </Link>
-        <span className="home-nav-note">Görsel algı oyunu</span>
+        <div className="home-nav-right">
+          <span className="home-nav-note">Görsel algı oyunu</span>
+          <div className="home-follow-qr">
+            <Image
+              src="/images/hsdistinye.png"
+              alt="Bizi takip etmek için QR kodu"
+              width={176}
+              height={176}
+            />
+            <span>Bizi takip edebilirsiniz!</span>
+          </div>
+        </div>
       </header>
 
       <section className="home-hero" aria-labelledby="home-title">
