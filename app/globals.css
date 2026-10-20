@@ -394,9 +394,7 @@ body::after {
 }
 
 .home-nav-right {
-  position: absolute;
-  top: 0;
-  right: 0;
+  position: static;
   display: flex;
   align-items: flex-start;
   gap: 20px;
@@ -514,28 +512,7 @@ body::after {
   text-decoration: none;
 }
 
-.home-follow-qr {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 0;
-  background: transparent;
-  color: var(--text-primary);
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-align: center;
-}
 
-.home-follow-qr img {
-  display: block;
-  width: 176px;
-  height: 176px;
-  object-fit: contain;
-  padding: 10px;
-  border: 3px solid #1a1a1a;
-  border-radius: 14px;
-}
 
 .home-time-note,
 .home-how-link {
@@ -1032,19 +1009,7 @@ body::after {
     display: none;
   }
 
-  .home-follow-qr {
-    gap: 4px;
-    padding: 0;
-    font-size: 0.62rem;
-  }
 
-  .home-follow-qr img {
-    width: 108px;
-    height: 108px;
-    padding: 6px;
-    border-width: 2px;
-    border-radius: 10px;
-  }
 
   .home-play-link,
   .home-play-link button {
@@ -1444,42 +1409,30 @@ body::after {
 }
 
 .home-nav-right {
-  align-items: flex-start;
+  align-items: center;
   gap: 18px;
 }
 
-.home-nav-right > :not(.home-follow-qr) {
-  align-self: flex-start;
-  margin-top: 2px;
+.home-nav-right > * {
+  align-self: center;
+  margin-top: 0;
 }
 
 .home-nav-note {
-  margin-top: 10px !important;
+  margin-top: 0 !important;
   color: rgba(255, 255, 255, 0.78);
 }
 
-.home-follow-qr {
-  gap: 6px;
-  font-size: 0.72rem;
-  color: #fff;
-}
 
-.home-follow-qr img {
-  width: 112px;
-  height: 112px;
-  padding: 7px;
-  border-width: 2px;
-  border-radius: 12px;
-}
 
 .home-hero {
   align-items: start;
   margin-top: 6px;
 }
 
-/* QR kodunun altından başlasın */
+/* Align the demo with the hero now that navigation is compact. */
 .home-demo {
-  margin-top: 112px;
+  margin-top: 0;
 }
 
 .home-play-link {
@@ -1551,7 +1504,7 @@ body::after {
     gap: 10px;
   }
 
-  .home-nav-right > :not(.home-follow-qr) {
+  .home-nav-right > * {
     align-self: center;
     margin-top: 0;
   }
@@ -1560,16 +1513,7 @@ body::after {
     margin-top: 0;
   }
 
-  .home-follow-qr {
-    font-size: 0.6rem;
-    gap: 4px;
-  }
 
-  .home-follow-qr img {
-    width: 84px;
-    height: 84px;
-    padding: 5px;
-  }
 
   .home-hero {
     margin-top: 0;

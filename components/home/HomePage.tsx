@@ -23,16 +23,6 @@ export default function HomePage() {
         <div className="home-nav-right">
           <span className="home-nav-note">{h.navNote}</span>
           <LangToggle />
-          <div className="home-follow-qr">
-            <Image
-              src="/images/hsdistinye.svg"
-              alt={h.qrAlt}
-              width={176}
-              height={176}
-              unoptimized
-            />
-            <span>{h.qrText}</span>
-          </div>
         </div>
       </header>
 
