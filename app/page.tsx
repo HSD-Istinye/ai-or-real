@@ -20,27 +20,12 @@ export default function HomePage() {
           <span className="home-brand-mark"><Sparkles size={19} /></span>
           <span>spot the <strong>ai</strong></span>
         </Link>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}>
-          <span className="home-nav-note">{h.navNote}</span>
-          <LangToggle />
-        </span>
+
       </header>
 
       <section className="home-hero" aria-labelledby="home-title">
         <div className="home-hero-copy">
-          <div className="home-kicker"><span /> {h.kicker}</div>
-          <h1 id="home-title">{h.title1}<br /><span>{h.title2}</span></h1>
-          <p className="home-intro">{h.intro}</p>
-          <div className="home-actions">
-            <Link href="/start" className="home-play-link">
-              <Button variant="primary" size="lg" rightIcon={<ArrowRight size={19} />}>
-                {h.play}
-              </Button>
-            </Link>
-            <span className="home-time-note"><Timer size={15} /> {h.timeNote(ROUNDS)}</span>
-            <Link href="/leaderboard" className="home-how-link" style={{ marginTop: 0 }}>
-              <Trophy size={15} /> {h.leaderboard}
-            </Link>
+
           </div>
           <a className="home-how-link" href="#nasil-oynanir">
             {h.how} <ArrowDown size={15} />

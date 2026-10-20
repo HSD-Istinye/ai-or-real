@@ -32,8 +32,3 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# leaderboard veritabanı (yerel veri — repoya girmez)
-/data/*.db
-/data/*.db-wal
-/data/*.db-shm
-/data/backups/
