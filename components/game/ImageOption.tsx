@@ -217,42 +217,6 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
           }}
         />
 
-        {/* Selected Indicator Icon on Reveal */}
-        {isRevealed && isSelected && (
-          <div
-            className="animate-pop-in"
-            style={{
-              position: 'absolute',
-              bottom: '16px',
-              left: '16px',
-              zIndex: 10,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: 'var(--radius-sm)',
-              background: isCorrectChoice
-                ? 'rgba(91, 150, 124, 0.96)'
-                : 'rgba(189, 120, 148, 0.96)',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-            }}
-          >
-            {isCorrectChoice ? (
-              <>
-                <CheckCircle2 size={18} />
-                <span>{t.game.yourPickCorrect}</span>
-              </>
-            ) : (
-              <>
-                <XCircle size={18} />
-                <span>{t.game.yourPickWrong}</span>
-              </>
-            )}
-          </div>
-        )}
-
         {/* Hover overlay hint */}
         {!isRevealed && !disabled && (
           <div
@@ -282,6 +246,23 @@ export const ImageOption: React.FC<ImageOptionProps> = ({
           {option.sourceDescription}
         </div>
       )}
+      {/* Reserve a footer row so revealing the result does not shift the images. */}
+      <div
+        className="image-option-result"
+        style={{
+          background: isRevealed && isSelected
+            ? (isCorrectChoice ? 'var(--accent-green)' : 'var(--accent-red)')
+            : 'var(--bg-secondary)',
+          color: '#fff',
+        }}
+      >
+        {isRevealed && isSelected && (
+          <>
+            {isCorrectChoice ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+            <span>{isCorrectChoice ? t.game.yourPickCorrect : t.game.yourPickWrong}</span>
+          </>
+        )}
+      </div>
     </div>
   );
 };

@@ -13,7 +13,7 @@ export function getDb() {
     max: 3,
     idle_timeout: 20,
     connect_timeout: 10,
-    connection: { application_name: 'spot-the-ai', statement_timeout: 15000 },
+    connection: { application_name: 'reallusion', statement_timeout: 15000 },
   });
   return globalDb.__hsdPostgres;
 }

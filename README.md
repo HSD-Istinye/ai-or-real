@@ -1,6 +1,6 @@
-# AI or Real? 🤖📷
+# Reallusion 🤖📷
 
-**AI or Real? (Spot the AI)**, gerçek fotoğrafları yapay zekâ tarafından üretilmiş görsellerden ayırt etmeye çalıştığınız, skorların canlı bir liderlik tablosuna yazıldığı bir web oyunudur. **Vercel + Supabase** üzerinde internet bağlantısıyla çalışır: oyuncular bilgisayarda fare ya da klavye ile oynar, liderlik tablosu aynı bilgisayarda ya da bağlı ikinci bir ekranda canlı görünür.
+**Reallusion**, gerçek fotoğrafları yapay zekâ tarafından üretilmiş görsellerden ayırt etmeye çalıştığınız, skorların canlı bir liderlik tablosuna yazıldığı bir web oyunudur. **Vercel + Supabase** üzerinde internet bağlantısıyla çalışır: oyuncular bilgisayarda fare ya da klavye ile oynar, liderlik tablosu aynı bilgisayarda ya da bağlı ikinci bir ekranda canlı görünür.
 
 Her turda kısa bir "Hazır ol…" beklemesinden sonra iki görsel **aynı anda** belirir: biri gerçek, diğeri yapay zekâ ürünü. Oyuncu süre bitmeden AI olanı **fare** ya da **klavye (← / →)** ile seçer. Doğru ve hızlı cevaplar, art arda doğru bilme serisiyle birlikte daha fazla puan kazandırır. Oyuncu başlamadan önce ismini girer; oyun bitince skoru otomatik kaydedilir ve liderlik tablosunda kendi sırasını görür.
 

@@ -4,9 +4,9 @@ import QueueFlusher from '@/components/net/QueueFlusher';
 import { LangProvider } from '@/lib/i18n';
 
 export const metadata: Metadata = {
-  title: 'Spot the AI | Yapay Zekayı Yakala',
+  title: 'Reallusion | Gerçek mi, Yapay mı?',
   description: 'Fotoğraflara dikkatle bak, detayları incele ve hangisinin yapay zekâ tarafından üretildiğini keşfet!',
-  keywords: ['ai', 'spot the ai', 'yapay zeka oyunu', 'yapay zeka dedektifi', 'turing testi'],
+  keywords: ['ai', 'Reallusion', 'yapay zeka oyunu', 'yapay zeka dedektifi', 'turing testi'],
 };
 
 export default function RootLayout({

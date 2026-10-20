@@ -20,7 +20,7 @@ const tr = {
   } as Record<string, string>,
 
   home: {
-    brandAria: 'Spot the AI ana sayfa',
+    brandAria: 'Reallusion ana sayfa',
     navNote: 'Görsel algı oyunu',
     qrAlt: 'Bizi takip etmek için QR kodu',
     qrText: 'Bizi takip edebilirsiniz!',
@@ -217,7 +217,7 @@ const en: Dict = {
   },
 
   home: {
-    brandAria: 'Spot the AI home',
+    brandAria: 'Reallusion home',
     navNote: 'Visual perception game',
     qrAlt: 'QR code to follow us',
     qrText: 'Follow us!',

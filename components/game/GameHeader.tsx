@@ -73,7 +73,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
                 lineHeight: 1.2,
               }}
             >
-              SPOT THE <span className="gradient-text-cyan">AI</span>
+              Real<span className="gradient-text-cyan">lusion</span>
             </h1>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
               {t.game.subtitle}

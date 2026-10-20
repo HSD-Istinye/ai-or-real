@@ -18,7 +18,7 @@ export default function HomePage() {
       <header className="home-nav">
         <Link href="/" className="home-brand" aria-label={h.brandAria}>
           <span className="home-brand-mark"><Sparkles size={19} /></span>
-          <span lang="en">SPOT THE <strong>AI</strong></span>
+          <span lang="en">Real<strong>lusion</strong></span>
         </Link>
         <div className="home-nav-right">
           <span className="home-nav-note">{h.navNote}</span>
@@ -96,7 +96,7 @@ export default function HomePage() {
       </section>
 
       <footer className="home-footer">
-        <span>SPOT THE AI</span>
+        <span>Reallusion</span>
         <span>{h.footer}</span>
       </footer>
     </div>

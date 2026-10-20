@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     return new Response('﻿' + await exportCsv(), {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename="spot-the-ai-${stamp}.csv"`,
+        'Content-Disposition': `attachment; filename="reallusion-${stamp}.csv"`,
       },
     });
   } catch (err) {
