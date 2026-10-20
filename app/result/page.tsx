@@ -10,7 +10,6 @@ import {
   UserPlus,
   Trophy,
   CheckCircle2,
-  XCircle,
   Flame,
   Award,
   ListChecks,
@@ -292,63 +291,6 @@ export default function ResultPage() {
             </Button>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {summary.answers.map((ans, idx) => (
-              <div
-                className="result-history-row"
-                key={idx}
-                role="button"
-                tabIndex={0}
-                onClick={() => setReviewAt(idx)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setReviewAt(idx);
-                  }
-                }}
-                style={{
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 16px',
-                  borderRadius: 'var(--radius-sm)',
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.06)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  {ans.isCorrect ? (
-                    <CheckCircle2 size={20} color="var(--accent-green)" />
-                  ) : (
-                    <XCircle size={20} color="var(--accent-red)" />
-                  )}
-                  <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                    {t.result.question(idx + 1)} ({ans.questionId})
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                    {ans.foul === 'timeout'
-                      ? t.result.timeout
-                      : ans.foul === 'guess'
-                        ? t.result.guess((ans.timeSpentMs / 1000).toFixed(2))
-                        : `${(ans.timeSpentMs / 1000).toFixed(2)} ${t.sec}`}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '0.9rem',
-                      fontWeight: 700,
-                      color: ans.isCorrect ? 'var(--accent-green)' : 'var(--text-muted)',
-                    }}
-                  >
-                    {t.result.points(ans.pointsEarned)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       )}
 
