@@ -7,18 +7,36 @@ import Button from '@/components/ui/Button';
 import { getLeaderboard } from '@/lib/net/api';
 import { LeaderboardResponse, Scope } from '@/types/api';
 import LeaderboardTable from '@/components/leaderboard/LeaderboardTable';
+import { FixedLang, useT } from '@/lib/i18n';
 
 /**
  * Büyük ekran / TV liderlik tablosu.
  * - 3 sn'de bir yenilenir (SSE gerekmez; ileride /api/events eklenebilir).
- * - URL: /leaderboard?scope=alltime&limit=15&tv=1  (tv=1 → butonları gizler)
+ * - URL: /leaderboard?scope=alltime&limit=15&tv=1  (tv=1 → butonları gizler, her zaman Türkçe)
+ * - tv=1 olmadan (oyundan açılınca) seçili dili izler.
  */
 const REFRESH_MS = 3000;
 
 export default function LeaderboardPage() {
+  const [tv, setTv] = useState(false);
+  useEffect(() => {
+    setTv(new URLSearchParams(window.location.search).get('tv') === '1');
+  }, []);
+  // TV ekranı aynı tarayıcıda açık olabilir; oyuncu dil değiştirince TV değişmesin
+  return tv ? (
+    <FixedLang lang="tr">
+      <LeaderboardView tv />
+    </FixedLang>
+  ) : (
+    <LeaderboardView tv={false} />
+  );
+}
+
+function LeaderboardView({ tv }: { tv: boolean }) {
+  const t = useT();
+  const b = t.board;
   const [scope, setScope] = useState<Scope>('today');
   const [limit, setLimit] = useState(10);
-  const [tv, setTv] = useState(false);
   const [data, setData] = useState<LeaderboardResponse | null>(null);
   const [online, setOnline] = useState(true);
   const [fresh, setFresh] = useState<Set<string>>(new Set());
@@ -30,7 +48,6 @@ export default function LeaderboardPage() {
     if (q.get('scope') === 'alltime') setScope('alltime');
     const l = Number(q.get('limit'));
     if (l >= 3 && l <= 50) setLimit(l);
-    setTv(q.get('tv') === '1');
   }, []);
 
   const load = useCallback(async () => {
@@ -88,21 +105,21 @@ export default function LeaderboardPage() {
           <Trophy size={40} color="var(--accent-amber)" />
           <div>
             <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 800, lineHeight: 1.1 }}>
-              <span style={{ color: 'var(--text-primary)' }}>Liderlik Tablosu</span>
+              <span style={{ color: 'var(--text-primary)' }}>{b.pageTitle}</span>
             </h1>
             <div style={{ color: 'var(--text-secondary)', display: 'flex', gap: '16px', alignItems: 'center', marginTop: 4 }}>
               <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-                <Users size={16} /> {data ? data.totalPlayers : '—'} oyun
+                <Users size={16} /> {b.games(data ? data.totalPlayers : '—')}
               </span>
               <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', color: online ? 'var(--accent-green)' : 'var(--accent-red)' }}>
-                {online ? <Wifi size={16} /> : <WifiOff size={16} />} {online ? 'canlı' : 'sunucuya ulaşılamıyor'}
+                {online ? <Wifi size={16} /> : <WifiOff size={16} />} {online ? b.live : b.offline}
               </span>
             </div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          {tab('today', 'Bugün')}
-          {tab('alltime', 'Tüm Zamanlar')}
+          {tab('today', b.today)}
+          {tab('alltime', b.alltime)}
         </div>
       </div>
 
@@ -112,7 +129,7 @@ export default function LeaderboardPage() {
 
         {!data && (
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-            {online ? 'Yükleniyor…' : 'Sunucuya ulaşılamıyor. "npm run start" çalışıyor mu?'}
+            {online ? b.loading : b.serverDown}
           </div>
         )}
       </div>
@@ -121,7 +138,7 @@ export default function LeaderboardPage() {
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <Link href="/start" style={{ textDecoration: 'none' }}>
             <Button variant="primary" size="lg" leftIcon={<Play size={20} fill="currentColor" />}>
-              Oyna
+              {b.play}
             </Button>
           </Link>
         </div>

@@ -7,6 +7,7 @@ import { ArrowRight, Trophy, UserRound } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { checkNick, ApiRequestError } from '@/lib/net/api';
 import { getPlayerNick, NICK_INPUT_MAX, sanitizeNickInput, setPlayerNick } from '@/lib/player';
+import { LangToggle, useT } from '@/lib/i18n';
 
 /**
  * Oyuna başlamadan önce oyuncunun ismini alır.
@@ -15,6 +16,7 @@ import { getPlayerNick, NICK_INPUT_MAX, sanitizeNickInput, setPlayerNick } from 
  */
 export default function StartPage() {
   const router = useRouter();
+  const t = useT();
   const [nick, setNick] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -30,18 +32,21 @@ export default function StartPage() {
     e.preventDefault();
     const trimmed = nick.trim().replace(/\s+/g, ' ');
     if (!trimmed) {
-      setError('Lütfen bir isim yaz');
+      setError(t.start.emptyError);
       return;
     }
     setBusy(true);
     setError(null);
     try {
-      const res = await checkNick(trimmed);
+      // Aynı oyuncu kendi ismini tekrar yazdıysa "bugün alınmış" sayılmaz
+      const saved = getPlayerNick();
+      const mine = !!saved && saved.toLocaleLowerCase('tr-TR') === trimmed.toLocaleLowerCase('tr-TR');
+      const res = await checkNick(trimmed, mine);
       setPlayerNick(res.nick);
       router.push('/game');
     } catch (err) {
-      if (err instanceof ApiRequestError && err.status === 400) {
-        setError(err.message);
+      if (err instanceof ApiRequestError && (err.status === 400 || err.status === 409)) {
+        setError((err.code && t.nickErrors[err.code]) || err.message);
         setBusy(false);
         inputRef.current?.focus();
         return;
@@ -57,6 +62,9 @@ export default function StartPage() {
       className="animate-pop-in"
       style={{ width: '100%', maxWidth: '560px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}
     >
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <LangToggle />
+      </div>
       <form
         onSubmit={start}
         className="glass-panel"
@@ -93,15 +101,15 @@ export default function StartPage() {
             color: 'var(--accent-cyan)',
           }}
         >
-          Oyuna başlamadan önce
+          {t.start.kicker}
         </span>
 
         <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', fontWeight: 800, lineHeight: 1.15 }}>
-          İsmin ne?
+          {t.start.title}
         </h1>
 
         <p style={{ color: 'var(--text-secondary)', maxWidth: 400, lineHeight: 1.5 }}>
-          Oyun bitince skorun bu isimle liderlik tablosuna yazılacak.
+          {t.start.desc}
         </p>
 
         <input
@@ -115,8 +123,8 @@ export default function StartPage() {
           autoComplete="off"
           spellCheck={false}
           disabled={busy}
-          aria-label="İsim"
-          placeholder="Adın ya da takma adın"
+          aria-label={t.start.inputAria}
+          placeholder={t.start.placeholder}
           style={{
             width: '100%',
             textAlign: 'center',
@@ -145,7 +153,7 @@ export default function StartPage() {
           disabled={busy || nick.trim().length === 0}
           rightIcon={<ArrowRight size={19} />}
         >
-          {busy ? 'Hazırlanıyor…' : 'Oyuna başla'}
+          {busy ? t.start.preparing : t.start.play}
         </Button>
       </form>
 
@@ -162,7 +170,7 @@ export default function StartPage() {
             opacity: 0.85,
           }}
         >
-          <Trophy size={16} /> Liderlik tablosuna bak
+          <Trophy size={16} /> {t.start.viewLeaderboard}
         </Link>
       </div>
     </div>

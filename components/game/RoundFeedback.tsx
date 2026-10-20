@@ -3,23 +3,25 @@
 import React from 'react';
 import { CheckCircle2, XCircle, Timer, Zap, Flame } from 'lucide-react';
 import { PlayerAnswer } from '@/types/game';
+import { useT } from '@/lib/i18n';
 
 /**
  * Tur sonucu — görsellerin üzerinde kısa süre görünen küçük kart.
  * Uzun açıklama ve ipuçları oyun sonundaki "Soru Detayları"nda.
  */
 export const RoundFeedback: React.FC<{ answer: PlayerAnswer }> = ({ answer }) => {
+  const t = useT();
   const { isCorrect, foul, pointsEarned, timeSpentMs, streakAtAnswer } = answer;
 
-  let title = isCorrect ? 'Doğru!' : 'Yanlış';
+  let title = isCorrect ? t.game.correct : t.game.wrong;
   let icon = isCorrect ? <CheckCircle2 size={26} /> : <XCircle size={26} />;
   let color = isCorrect ? 'var(--accent-green)' : 'var(--accent-red)';
   if (foul === 'timeout') {
-    title = 'Süre doldu';
+    title = t.game.timeout;
     icon = <Timer size={26} />;
     color = 'var(--accent-amber)';
   } else if (foul === 'guess') {
-    title = 'Çok hızlı — tahmin sayıldı';
+    title = t.game.guess;
     icon = <Zap size={26} />;
     color = 'var(--accent-amber)';
   }
@@ -46,7 +48,7 @@ export const RoundFeedback: React.FC<{ answer: PlayerAnswer }> = ({ answer }) =>
       <span style={{ fontSize: '1.15rem', color }}>{title}</span>
       {foul !== 'timeout' && (
         <span style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
-          {(timeSpentMs / 1000).toFixed(2)} sn
+          {(timeSpentMs / 1000).toFixed(2)} {t.sec}
         </span>
       )}
       <span style={{ fontSize: '1.15rem', color: pointsEarned > 0 ? 'var(--accent-green)' : 'var(--text-muted)' }}>

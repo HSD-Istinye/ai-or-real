@@ -4,6 +4,7 @@ import React from 'react';
 import { Sparkles, HelpCircle } from 'lucide-react';
 import { Question, OptionType } from '@/types/question';
 import { ImageOption } from './ImageOption';
+import { useT } from '@/lib/i18n';
 
 interface QuestionCardProps {
   question: Question;
@@ -33,14 +34,15 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   topSlot,
   compact = false,
 }) => {
+  const t = useT();
   const getDifficultyBadge = (diff: Question['difficulty']) => {
     switch (diff) {
       case 'easy':
-        return { label: 'Kolay', color: 'var(--accent-green)', bg: 'rgba(91, 150, 124, 0.13)' };
+        return { label: t.difficulty.easy, color: 'var(--accent-green)', bg: 'rgba(91, 150, 124, 0.13)' };
       case 'medium':
-        return { label: 'Orta', color: 'var(--accent-cyan)', bg: 'rgba(113, 141, 188, 0.13)' };
+        return { label: t.difficulty.medium, color: 'var(--accent-cyan)', bg: 'rgba(113, 141, 188, 0.13)' };
       case 'hard':
-        return { label: 'Zor', color: 'var(--accent-purple)', bg: 'rgba(141, 123, 180, 0.13)' };
+        return { label: t.difficulty.hard, color: 'var(--accent-purple)', bg: 'rgba(141, 123, 180, 0.13)' };
     }
   };
 
@@ -82,7 +84,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               color: 'var(--text-secondary)',
             }}
           >
-            {question.category}
+            {t.categories[question.category] ?? question.category}
           </span>
         </div>
 
@@ -94,7 +96,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             letterSpacing: '-0.01em',
           }}
         >
-          {question.title}
+          {t.whichIsAi}
         </h2>
 
         {!compact && (
@@ -129,7 +131,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           <ImageOption
             key={option.id}
             option={option}
-            label={option.label || (idx === 0 ? 'Seçenek A' : 'Seçenek B')}
+            label={idx === 0 ? t.game.optionA : t.game.optionB}
             isSelected={selectedOption === option.id}
             isRevealed={isRevealed}
             targetAnswer={question.correctAnswer}

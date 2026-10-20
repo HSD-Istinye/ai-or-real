@@ -13,9 +13,9 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 /**
- * Her zorluktan QUESTION_MIX kadar soru seçer (ör. 3 kolay + 4 orta + 3 zor),
- * sırayı karıştırır ve her sorunun A/B konumunu rastgele belirler.
- * Bir zorlukta yeterli soru yoksa eksik kalan yer diğer sorulardan doldurulur.
+ * Her zorluktan QUESTION_MIX kadar soru seçer (ör. 3 kolay + 4 orta + 3 zor).
+ * Sıra kolaydan zora gider; her zorluğun kendi içi karışıktır. A/B konumu da rastgele.
+ * Bir zorlukta yeterli soru yoksa eksik kalan yer diğer sorulardan (sona) doldurulur.
  */
 export function selectQuestions(): Question[] {
   const picked: Question[] = [];
@@ -27,5 +27,5 @@ export function selectQuestions(): Question[] {
     const rest = shuffle(QUESTIONS.filter((q) => !picked.includes(q)));
     picked.push(...rest.slice(0, wanted - picked.length));
   }
-  return shuffle(picked).map(randomizeOptions);
+  return picked.map(randomizeOptions);
 }

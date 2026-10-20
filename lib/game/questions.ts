@@ -15,21 +15,10 @@ interface RawQuestion {
   explanation: string;
 }
 
-const CATEGORY_TR: Record<string, string> = {
-  portrait: 'Portre',
-  nature: 'Doğa',
-  animal: 'Hayvan',
-  city: 'Şehir',
-  food: 'Yemek',
-  technology: 'Teknoloji',
-  architecture: 'Mimari',
-  art: 'Sanat',
-};
-
 export const QUESTIONS: Question[] = (rawQuestions as RawQuestion[]).map((q) => ({
   id: q.id,
   title: 'Hangisi yapay zekâ?',
-  category: CATEGORY_TR[q.category] ?? q.category,
+  category: q.category, // ekranda lib/i18n/dict.ts → categories ile çevrilir
   difficulty: q.difficulty,
   description: '',
   correctAnswer: 'ai',

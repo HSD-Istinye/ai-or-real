@@ -3,13 +3,13 @@ import { NextResponse } from 'next/server';
 import { ValidationError } from './validate';
 import { GameMode, Scope } from '@/types/api';
 
-export function jsonError(status: number, error: string) {
-  return NextResponse.json({ ok: false, error }, { status });
+export function jsonError(status: number, error: string, code?: string) {
+  return NextResponse.json({ ok: false, error, ...(code && { code }) }, { status });
 }
 
 /** Route içindeki hataları tek tip JSON'a çevirir; sunucu hiçbir durumda HTML hata sayfası dönmez. */
 export function handleError(err: unknown) {
-  if (err instanceof ValidationError) return jsonError(400, err.message);
+  if (err instanceof ValidationError) return jsonError(400, err.message, err.code);
   console.error('[api]', err);
   return jsonError(500, 'Sunucu hatası');
 }

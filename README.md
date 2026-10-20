@@ -127,6 +127,8 @@ Oyun başlar → sorular seçilir, A/B konumları karıştırılır
 Sonuç ekranı: unvan → skor otomatik kaydedilir → "Bugün 7. sıradasın"
               → liderlik tablosu (oyuncunun satırı "SEN" ile vurgulu)
               → puan, doğruluk, seri, soru detayları (her sorunun süresi)
+              → "Cevapları gör": 10 soru sırayla, oyundaki sol/sağ düzeninde;
+                AI görseli ve oyuncunun seçimi (doğru/yanlış) işaretli
     ↓
 "Yeniden Oyna" (aynı isim) · "Yeni Oyuncu" (isim ekranına döner)
 ```
@@ -140,6 +142,16 @@ Sonuç ekranı: unvan → skor otomatik kaydedilir → "Bugün 7. sıradasın"
 | Tur sonucunu beklemeden geç | — | `Enter` veya `Boşluk` |
 
 Görseller belirmeden önce basmak "Çok erken!" uyarısı verir ve bekleme baştan başlar; puan kaybı yoktur.
+
+"Cevapları gör" ekranında `←` / `→` ile sorular arasında gezilir, `Esc` kapatır.
+
+### Dil (Türkçe / İngilizce)
+
+- Ana sayfada ve isim ekranında **TR / EN** düğmesi var. Seçim tarayıcıda (`localStorage`) saklanır; stantta oyuncu değişse de son seçilen dil kalır.
+- Tüm metinler tek dosyada: **`lib/i18n/dict.ts`**. Yeni metin eklerken iki dile de ekleyin (TypeScript eksik çeviriyi hata olarak gösterir).
+- Bileşenlerde `const t = useT();` ile kullanılır (`lib/i18n/index.tsx`).
+- Liderlik sayfası (`/leaderboard`) seçili dili izler; **TV modu (`/leaderboard?tv=1`) ve admin paneli her zaman Türkçe** (TV aynı tarayıcıda açıksa oyuncu dil değiştirince TV değişmesin diye).
+- Sunucudaki isim hataları bir `code` ile döner (`nick_blocked` vb.); isim ekranı mesajı seçili dilde gösterir.
 
 ---
 
@@ -225,12 +237,14 @@ ai-or-real/
 │   │   ├── LeaderboardTable.tsx  # tablo satırları (ortak)
 │   │   └── RunResult.tsx         # oyun sonu: otomatik kayıt + sıra + tablo
 │   ├── net/QueueFlusher.tsx      # bekleyen skorları arka planda gönderir
+│   ├── result/AnswerReview.tsx   # "Cevapları gör" ekranı
 │   └── ui/Button.tsx
 │
 ├── lib/
 │   ├── game/                     # createGame, selectQuestions, randomizeOptions,
 │   │                             # checkAnswer, calculateScore,
 │   │                             # rules.ts (süre/puan kuralları), timing.ts (ölçüm)
+│   ├── i18n/                     # dict.ts (TR/EN metinler), index.tsx (useT, dil düğmesi)
 │   ├── net/                      # api.ts, submitRun.ts (offline kuyruk), uuid.ts
 │   ├── player.ts                 # oyuncu ismi (sessionStorage)
 │   └── server/                   # db.ts, schema.sql, validate.ts, blocklist.ts,
@@ -259,7 +273,7 @@ ai-or-real/
 
 ### Soru seçimi
 
-- Her oyunda **10 soru**: havuzdan **3 kolay + 4 orta + 3 zor** rastgele seçilir, sıraları karıştırılır (`QUESTION_MIX`, `lib/game/rules.ts`).
+- Her oyunda **10 soru**: havuzdan **3 kolay + 4 orta + 3 zor** rastgele seçilir ve **kolaydan zora** sıralanır; her zorluğun kendi içi karışıktır (`QUESTION_MIX`, `lib/game/rules.ts`).
 - Havuz `data/questions.json` (şu an 50 soru). Oyunun kullandığı biçime `lib/game/questions.ts` çevirir.
 - Her soruda gerçek ve AI görselinin **A/B konumu rastgele** belirlenir; böylece cevap konumu ezberlenemez.
 - Bir soruya ikinci kez cevap verilemez; "Yeniden Oyna" yeni bir karışım üretir.
@@ -365,6 +379,7 @@ GET  /api/admin/export?token=…                 CSV
 - **Skoru sunucu hesaplar.** İstemci sadece cevapları gönderir; konsoldan sahte skor gönderilemez.
 - **Sıralama:** puan (yüksekten düşüğe), eşitlikte doğru cevapların ortalama süresi (hızlı olan üstte).
 - **Aynı isim** (büyük/küçük harf fark etmez) tabloda en iyi skoruyla **bir kez** görünür. İsimsiz (`???`) oyuncular ayrı sayılır ve "İsimsiz" yazar.
+- **Bugün alınmış isim** başka biri tarafından kullanılamaz (`/api/nick` → 409 `nick_taken`). "Bugün" her gece yarısı sıfırlanır. Aynı oyuncu "Yeniden Oyna" ile ya da aynı tarayıcı oturumunda kendi ismini yazarak tekrar oynayabilir; "Yeni Oyuncu"dan sonra isim alınmış sayılır. Gizlenen kayıtlar ve "Günü sıfırla" ismi boşa çıkarır.
 - **İsim:** oyuna başlamadan önce `/start` ekranında sorulur; isim girilmeden `/game` açılmaz. En fazla 20 karakter (TV tablosuna sığsın); harf, rakam, boşluk ve `. _ - '` kullanılabilir, en az bir harf şart. İsim oyun boyunca tarayıcı sekmesinde (`sessionStorage`) tutulur; "Yeni Oyuncu" butonu sıfırlar.
 - **Kayıt:** oyun bitince skor bu isimle **otomatik** kaydedilir, ayrıca bir şey sormaz. Sunucu ismi oyun sonunda yine de reddederse skor kaybolmaz, "İsimsiz" olarak kaydedilir.
 - **Uygunsuz isim filtresi** (`lib/server/blocklist.ts`): isim ekranında anında uyarı verir; kelime ve kök kontrolü yapar, "s1kt1r" gibi rakamlı yazımları yakalar, "Işık" gibi masum isimleri engellemez. Kaçanlar `/admin`'den gizlenir.

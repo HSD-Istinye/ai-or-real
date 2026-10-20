@@ -7,6 +7,7 @@ import { LeaderboardResponse, LeaderboardRow, SubmitRunRequest, SubmitRunRespons
 import { submitRun } from '@/lib/net/submitRun';
 import { ApiRequestError, getLeaderboard } from '@/lib/net/api';
 import LeaderboardTable from './LeaderboardTable';
+import { useT } from '@/lib/i18n';
 
 /**
  * Oyun sonu: skoru oyuncunun başta girdiği isimle OTOMATİK kaydeder,
@@ -45,6 +46,8 @@ export default function RunResult({ summary }: { summary: GameSummary }) {
   const [phase, setPhase] = useState<Phase>({ kind: 'sending' });
   const [board, setBoard] = useState<LeaderboardResponse | null>(null);
   const started = useRef(false);
+  const t = useT();
+  const b = t.board;
 
   useEffect(() => {
     if (!summary.runId || summary.answers.length === 0 || started.current) return;
@@ -99,7 +102,7 @@ export default function RunResult({ summary }: { summary: GameSummary }) {
         setPhase({ kind: 'done', res });
         await loadBoard();
       } catch (err) {
-        setPhase({ kind: 'error', message: err instanceof ApiRequestError ? err.message : 'Skor kaydedilemedi' });
+        setPhase({ kind: 'error', message: err instanceof ApiRequestError ? err.message : b.saveFailed });
       }
     })();
   }, [summary]);
@@ -117,7 +120,7 @@ export default function RunResult({ summary }: { summary: GameSummary }) {
   if (phase.kind === 'sending') {
     return (
       <div className="glass-panel" style={{ ...panel, alignItems: 'center', color: 'var(--text-secondary)' }}>
-        Skorun kaydediliyor…
+        {b.sending}
       </div>
     );
   }
@@ -127,18 +130,19 @@ export default function RunResult({ summary }: { summary: GameSummary }) {
       <div className="glass-panel" style={{ ...panel, alignItems: 'center', textAlign: 'center' }}>
         <WifiOff size={26} color="var(--accent-amber)" />
         <div style={{ fontWeight: 700 }}>
-          {phase.kind === 'queued' ? 'Skorun kaydedildi' : phase.message}
+          {phase.kind === 'queued' ? b.queuedTitle : phase.message}
         </div>
         <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-          {phase.kind === 'queued'
-            ? 'Sunucuya şu an ulaşılamıyor. Bağlantı gelince liderlik tablosuna otomatik eklenecek.'
-            : 'Liderlik tablosu şu an gösterilemiyor.'}
+          {phase.kind === 'queued' ? b.queuedDesc : b.unavailable}
         </div>
       </div>
     );
   }
 
   const r = phase.res;
+  const [rankA, rankB, rankC] = b.rankToday(r.rankToday);
+  const [runA, runB, runC, runD] = b.thisRun(r.rankThisRun, r.bestToday.score);
+  const [beatA, beatB, beatC] = b.beaten(r.totalToday, r.beatenToday, r.percentile);
   // Tablo oyuncuyu bugünkü en iyi oyunuyla gösterir; kendi satırı da o oyun olmalı
   const ownRow: LeaderboardRow = {
     rank: r.rankToday,
@@ -157,27 +161,29 @@ export default function RunResult({ summary }: { summary: GameSummary }) {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '8px' }}>
         <Trophy size={30} color="var(--accent-amber)" />
         <div style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
-          {r.nick === '???' ? 'İSİMSİZ' : r.nick.toLocaleUpperCase('tr-TR')} &bull; LİDERLİK TABLOSU
+          {(r.nick === '???' ? b.anonymous : r.nick).toLocaleUpperCase(b.locale)} &bull; {b.title}
         </div>
         <div style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800 }}>
-          Bugün <span style={{ color: 'var(--accent-purple)' }}>{r.rankToday}.</span> sıradasın
+          {rankA}<span style={{ color: 'var(--accent-purple)' }}>{rankB}</span>{rankC}
         </div>
         {r.rankThisRun !== r.rankToday && (
           <div style={{ color: 'var(--text-secondary)' }}>
-            Bu oyunda: <b>{r.rankThisRun}.</b> &bull; bugünkü en iyi skorun <b>{r.bestToday.score}</b>
+            {runA}<b>{runB}</b>{runC}<b>{runD}</b>
           </div>
         )}
-        <div style={{ color: 'var(--text-secondary)' }}>
-          Bugün oynayan {r.totalToday} kişiden <b style={{ color: 'var(--accent-cyan)' }}>{r.beatenToday}</b> kişiyi
-          geçtin &bull; yüzdelik dilim %{r.percentile}
-        </div>
+        {/* tek oyuncu varken "1 kişiden 0 kişiyi geçtin" anlamsız */}
+        {r.totalToday > 1 && (
+          <div style={{ color: 'var(--text-secondary)' }}>
+            {beatA}<b style={{ color: 'var(--accent-cyan)' }}>{beatB}</b>{beatC}
+          </div>
+        )}
       </div>
 
       {/* Tablo */}
       {board ? (
         <LeaderboardTable rows={board.rows} highlightId={r.bestToday.id} highlightNick={r.nick} extraRow={ownRow} size="md" />
       ) : (
-        <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Tablo yükleniyor…</div>
+        <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{b.loadingTable}</div>
       )}
     </div>
   );

@@ -15,6 +15,7 @@ import { newId } from '@/lib/net/uuid';
 import { getPlayerNick } from '@/lib/player';
 import { GameState, PlayerAnswer, RoundPhase } from '@/types/game';
 import { OptionType } from '@/types/question';
+import { useT } from '@/lib/i18n';
 
 // Web Audio synthesizer for zero-dependency sound effects
 class SoundEffects {
@@ -110,6 +111,7 @@ class SoundEffects {
  */
 export default function GamePage() {
   const router = useRouter();
+  const t = useT();
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [phase, setPhase] = useState<RoundPhase>('loading');
   const [selectedOption, setSelectedOption] = useState<OptionType | null>(null);
@@ -301,7 +303,7 @@ export default function GamePage() {
   if (!gameState || gameState.questions.length === 0) {
     return (
       <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-        <p>Oyun hazırlanıyor...</p>
+        <p>{t.game.loadingGame}</p>
       </div>
     );
   }
@@ -325,12 +327,12 @@ export default function GamePage() {
         }}
       >
         <div style={{ fontSize: 'clamp(2rem, 5vw, 3.2rem)', fontWeight: 800 }}>
-          {tooEarly ? 'Çok erken!' : phase === 'loading' ? 'Hazırlanıyor…' : 'Hazır ol…'}
+          {tooEarly ? t.game.tooEarly : phase === 'loading' ? t.game.preparing : t.game.ready}
         </div>
         <div style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>
           {tooEarly
-            ? 'Görseller belirmeden basma'
-            : `${(limit / 1000).toFixed(0)} saniyen var · Fare ile seç ya da ← / → tuşları`}
+            ? t.game.dontPressEarly
+            : t.game.hint(Math.round(limit / 1000))}
         </div>
       </div>
     );
