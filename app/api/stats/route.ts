@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     const q = new URL(req.url).searchParams;
     const raw = q.get('score');
     const score = raw !== null && raw !== '' && Number.isFinite(Number(raw)) ? Number(raw) : undefined;
-    const data = getStats({ scope: parseScope(q.get('scope')), mode: parseMode(q.get('mode')), score });
+    const data = await getStats({ scope: parseScope(q.get('scope')), mode: parseMode(q.get('mode')), score });
     return NextResponse.json(data, { headers: { 'Cache-Control': 'no-store' } });
   } catch (err) {
     return handleError(err);

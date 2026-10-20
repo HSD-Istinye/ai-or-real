@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   if (denied) return denied;
   try {
     const stamp = new Date().toISOString().slice(0, 10);
-    return new Response('﻿' + exportCsv(), {
+    return new Response('﻿' + await exportCsv(), {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
         'Content-Disposition': `attachment; filename="spot-the-ai-${stamp}.csv"`,

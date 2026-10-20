@@ -7,7 +7,7 @@ import { ArrowRight, Trophy, UserRound } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { checkNick, ApiRequestError } from '@/lib/net/api';
 import { getPlayerNick, NICK_INPUT_MAX, sanitizeNickInput, setPlayerNick } from '@/lib/player';
-import { LangToggle, useT } from '@/lib/i18n';
+import { useT } from '@/lib/i18n';
 
 /**
  * Oyuna başlamadan önce oyuncunun ismini alır.
@@ -62,9 +62,6 @@ export default function StartPage() {
       className="animate-pop-in"
       style={{ width: '100%', maxWidth: '560px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}
     >
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <LangToggle />
-      </div>
       <form
         onSubmit={start}
         className="glass-panel"

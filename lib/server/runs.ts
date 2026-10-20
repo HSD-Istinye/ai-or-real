@@ -1,78 +1,26 @@
 import 'server-only';
 import { getDb } from './db';
+import { scopeSince } from './day';
 import { getQuestion, parseSubmitRun } from './validate';
 import { checkAnswer } from '@/lib/game/checkAnswer';
 import { TIME_GRACE_MS, timeLimitFor } from '@/lib/game/rules';
-import {
-  GameMode,
-  LeaderboardResponse,
-  LeaderboardRow,
-  QuestionStat,
-  Scope,
-  StatsResponse,
-  SubmitRunResponse,
-} from '@/types/api';
-
+import { GameMode, LeaderboardResponse, Scope, StatsResponse, SubmitRunResponse } from '@/types/api';
+export { scopeSince } from './day';
 type ParsedRun = ReturnType<typeof parseSubmitRun>;
-
 interface RunRow {
-  id: string;
-  nick: string;
-  mode: GameMode;
-  score: number;
-  correct: number;
-  total: number;
-  avg_ms: number | null;
-  max_streak: number;
-  device: string | null;
-  created_at: string;
-  received_at: string;
-  hidden: number;
+  id: string; nick: string; nick_key: string; mode: GameMode; score: number;
+  correct: number; total: number; avg_ms: number | null; max_streak: number;
+  device: string | null; created_at: Date; received_at: Date; hidden: number;
 }
-
-/* ─────────────────────────── yardımcılar ─────────────────────────── */
-
-/** "Bugün" = sunucu bilgisayarının yerel saatine göre gece yarısından beri. */
-export function scopeSince(scope: Scope): string {
-  if (scope === 'alltime') return '';
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
-}
-
-/** Aynı isim (büyük/küçük harf fark etmez) tabloda bir kez görünsün; '???' (isimsiz) oyuncular ayrı sayılır. */
-const PKEY = `CASE WHEN nick = '???' THEN id ELSE nick_key END`;
-const AVG = `COALESCE(avg_ms, 999999999)`;
-
-const BEST_CTE = `
-  WITH best AS (
-    SELECT *, ${PKEY} AS pkey,
-           ROW_NUMBER() OVER (PARTITION BY ${PKEY} ORDER BY score DESC, ${AVG} ASC, created_at ASC) AS rn
-    FROM run
-    WHERE hidden = 0 AND mode = @mode AND created_at >= @since
-  )`;
-
-/** Gruplama anahtarı: "Ali", "ALİ", "ali " aynı kişi sayılır. */
 export function nickKey(nick: string): string {
   return nick.toLocaleLowerCase('tr-TR').replace(/\s+/g, ' ').trim();
 }
-
-/** Bu isim bugün (gece yarısından beri) gizlenmemiş bir oyunda kullanıldı mı? Her gün sıfırlanır. */
-export function isNickTakenToday(nick: string): boolean {
+export async function isNickTakenToday(nick: string): Promise<boolean> {
   if (nick === '???') return false;
-  const row = getDb()
-    .prepare(`SELECT 1 FROM run WHERE hidden = 0 AND nick_key = ? AND created_at >= ? LIMIT 1`)
-    .get(nickKey(nick), scopeSince('today'));
-  return !!row;
+  const sql = getDb();
+  const rows = await sql`SELECT 1 FROM game.run WHERE hidden = 0 AND nick_key = ${nickKey(nick)} AND created_at >= ${scopeSince('today')} LIMIT 1`;
+  return rows.length > 0;
 }
-
-/* ───────────────────────── skor hesaplama ───────────────────────── */
-
-/**
- * Skoru SUNUCU hesaplar — istemcideki ile aynı fonksiyon (lib/game/checkAnswer.ts) kullanılır,
- * böylece puan formülü tek yerde durur. Refleks puanlamasına geçince sadece
- * lib/game/calculateScore.ts değişir.
- */
 export function scoreRun(run: ParsedRun) {
   let streak = 0;
   let maxStreak = 0;
@@ -119,248 +67,122 @@ export function scoreRun(run: ParsedRun) {
   return { score: Math.max(0, score), correct, total: answers.length, avgMs, maxStreak, answers };
 }
 
-/* ───────────────────────────── yazma ───────────────────────────── */
+async function bestRuns(mode: GameMode, since: string) {
+  const sql = getDb();
+  return sql<RunRow[]>`
+    SELECT DISTINCT ON (CASE WHEN nick = '???' THEN id ELSE nick_key END) *
+    FROM game.run WHERE hidden = 0 AND mode = ${mode} AND created_at >= ${since}
+    ORDER BY CASE WHEN nick = '???' THEN id ELSE nick_key END,
+      score DESC, COALESCE(avg_ms, 999999999), created_at, id`;
+}
+const average = (r: RunRow) => r.avg_ms ?? 999999999;
+const playerKey = (r: RunRow) => r.nick === '???' ? r.id : r.nick_key;
 
-export function insertRun(body: unknown): SubmitRunResponse {
+export async function insertRun(body: unknown): Promise<SubmitRunResponse> {
   const run = parseSubmitRun(body);
-  const db = getDb();
-
-  const existing = db.prepare('SELECT * FROM run WHERE id = ?').get(run.id) as RunRow | undefined;
-  if (existing) {
-    // Aynı id ikinci kez geldi (ağ koptu, kuyruk tekrar gönderdi) → yeni kayıt açma.
-    return buildSubmitResponse(existing, true);
-  }
-
   const s = scoreRun(run);
-  const receivedAt = new Date().toISOString();
-
-  const insertRunStmt = db.prepare(`
-    INSERT OR IGNORE INTO run (id, nick, nick_key, mode, score, correct, total, avg_ms, max_streak, device, created_at, received_at)
-    VALUES (@id, @nick, @nickKey, @mode, @score, @correct, @total, @avgMs, @maxStreak, @device, @createdAt, @receivedAt)
-  `);
-  const insertAnswerStmt = db.prepare(`
-    INSERT INTO answer (run_id, idx, question_id, choice, correct, reaction_ms, points, foul)
-    VALUES (@runId, @idx, @questionId, @choice, @correct, @reactionMs, @points, @foul)
-  `);
-
-  db.transaction(() => {
-    const info = insertRunStmt.run({
-      id: run.id,
-      nick: run.nick,
-      nickKey: nickKey(run.nick),
-      mode: run.mode,
-      score: s.score,
-      correct: s.correct,
-      total: s.total,
-      avgMs: s.avgMs,
-      maxStreak: s.maxStreak,
-      device: run.device,
-      createdAt: run.createdAt,
-      receivedAt,
-    });
-    if (info.changes === 0) return; // eşzamanlı çift istek — diğeri zaten yazdı
-    for (const a of s.answers) {
-      insertAnswerStmt.run({
-        runId: run.id,
-        idx: a.idx,
-        questionId: a.questionId,
-        choice: a.choice,
-        correct: a.correct ? 1 : 0,
-        reactionMs: a.reactionMs,
-        points: a.points,
-        foul: a.foul ?? null,
-      });
+  const sql = getDb();
+  // ON CONFLICT waits for concurrent inserts. Answers are committed with the run.
+  const result = await sql.begin(async tx => {
+    const saved = await tx<RunRow[]>`
+      INSERT INTO game.run (id, nick, nick_key, mode, score, correct, total, avg_ms, max_streak, device, created_at, received_at)
+      VALUES (${run.id}, ${run.nick}, ${nickKey(run.nick)}, ${run.mode}, ${s.score}, ${s.correct}, ${s.total}, ${s.avgMs}, ${s.maxStreak}, ${run.device}, ${run.createdAt}, ${new Date().toISOString()})
+      ON CONFLICT (id) DO NOTHING RETURNING *`;
+    if (!saved.length) {
+      const [existing] = await tx<RunRow[]>`SELECT * FROM game.run WHERE id = ${run.id}`;
+      return { row: existing, duplicate: true };
     }
-  })();
-
-  const saved = db.prepare('SELECT * FROM run WHERE id = ?').get(run.id) as RunRow;
-  return buildSubmitResponse(saved, false);
+    for (const a of s.answers) {
+      await tx`INSERT INTO game.answer (run_id, idx, question_id, choice, correct, reaction_ms, points, foul)
+        VALUES (${run.id}, ${a.idx}, ${a.questionId}, ${a.choice}, ${a.correct ? 1 : 0}, ${a.reactionMs}, ${a.points}, ${a.foul})`;
+    }
+    return { row: saved[0], duplicate: false };
+  });
+  return buildSubmitResponse(result.row, result.duplicate);
 }
 
-function buildSubmitResponse(r: RunRow, duplicate: boolean): SubmitRunResponse {
-  const db = getDb();
-  const since = scopeSince('today');
-  const pkey = r.nick === '???' ? r.id : nickKey(r.nick);
-  const params = { mode: r.mode, since, pkey };
-
-  // Tablo her oyuncuyu bugünkü en iyi oyunuyla gösterir; başlıktaki sıra da ona göre olmalı.
-  const prevBest = db
-    .prepare(`${BEST_CTE} SELECT id, score, correct, total, avg_ms FROM best WHERE rn = 1 AND pkey = @pkey`)
-    .get(params) as Pick<RunRow, 'id' | 'score' | 'correct' | 'total' | 'avg_ms'> | undefined;
-  const avgOf = (ms: number | null) => ms ?? 999999999;
-  const best =
-    prevBest && (prevBest.score > r.score || (prevBest.score === r.score && avgOf(prevBest.avg_ms) < avgOf(r.avg_ms)))
-      ? prevBest
-      : r;
-
-  // Diğer oyuncuların (en iyi skorlarıyla) kaçı verilen skordan daha iyi?
-  const betterStmt = db.prepare(
-    `${BEST_CTE}
-     SELECT COUNT(*) AS n FROM best
-     WHERE rn = 1 AND pkey != @pkey
-       AND (score > @score OR (score = @score AND ${AVG} < COALESCE(@avgMs, 999999999)))`,
-  );
-  const rankOf = (score: number, avgMs: number | null) =>
-    (betterStmt.get({ ...params, score, avgMs }) as { n: number }).n + 1;
-
-  // Kişi sayısı: aynı isim bir kez sayılır (oyun sayısı değil)
-  const others = db
-    .prepare(
-      `${BEST_CTE}
-       SELECT COUNT(*) AS total, SUM(CASE WHEN score < @score THEN 1 ELSE 0 END) AS lower
-       FROM best WHERE rn = 1 AND pkey != @pkey`,
-    )
-    .get({ ...params, score: best.score }) as { total: number; lower: number | null };
-
-  const beaten = others.lower ?? 0;
-  const percentile = others.total > 0 ? Math.round((100 * beaten) / others.total) : 100;
-
+async function buildSubmitResponse(r: RunRow, duplicate: boolean): Promise<SubmitRunResponse> {
+  const rows = await bestRuns(r.mode, scopeSince('today'));
+  const key = playerKey(r);
+  const previous = rows.find(row => playerKey(row) === key);
+  const best = previous && (previous.score > r.score || (previous.score === r.score && average(previous) < average(r))) ? previous : r;
+  const others = rows.filter(row => playerKey(row) !== key);
+  const rank = (candidate: RunRow) => 1 + others.filter(row => row.score > candidate.score || (row.score === candidate.score && average(row) < average(candidate))).length;
+  const beaten = others.filter(row => row.score < best.score).length;
   return {
-    ok: true,
-    id: r.id,
-    duplicate,
-    nick: r.nick,
-    score: r.score,
-    correct: r.correct,
-    total: r.total,
-    avgMs: r.avg_ms,
-    rankToday: rankOf(best.score, best.avg_ms),
-    rankThisRun: rankOf(r.score, r.avg_ms),
+    ok: true, id: r.id, duplicate, nick: r.nick, score: r.score, correct: r.correct,
+    total: r.total, avgMs: r.avg_ms, rankToday: rank(best), rankThisRun: rank(r),
     bestToday: { id: best.id, score: best.score, correct: best.correct, total: best.total, avgMs: best.avg_ms },
-    percentile,
-    beatenToday: beaten,
-    totalToday: others.total + 1,
+    percentile: others.length ? Math.round(100 * beaten / others.length) : 100,
+    beatenToday: beaten, totalToday: others.length + 1,
   };
 }
 
-/* ───────────────────────────── okuma ───────────────────────────── */
-
-export function getLeaderboard(opts: { scope: Scope; mode: GameMode; limit: number }): LeaderboardResponse {
-  const db = getDb();
+export async function getLeaderboard(opts: { scope: Scope; mode: GameMode; limit: number }): Promise<LeaderboardResponse> {
+  const sql = getDb();
   const since = scopeSince(opts.scope);
-
-  const rows = db
-    .prepare(
-      `${BEST_CTE}
-       SELECT id, nick, score, correct, total, avg_ms, created_at FROM best
-       WHERE rn = 1
-       ORDER BY score DESC, ${AVG} ASC, created_at ASC
-       LIMIT @limit`,
-    )
-    .all({ mode: opts.mode, since, limit: opts.limit }) as Pick<
-    RunRow,
-    'id' | 'nick' | 'score' | 'correct' | 'total' | 'avg_ms' | 'created_at'
-  >[];
-
-  const { n } = db
-    .prepare(`SELECT COUNT(*) AS n FROM run WHERE hidden = 0 AND mode = @mode AND created_at >= @since`)
-    .get({ mode: opts.mode, since }) as { n: number };
-
+  const rows = await sql<RunRow[]>`
+    WITH best AS (
+      SELECT *, ROW_NUMBER() OVER (PARTITION BY CASE WHEN nick = '???' THEN id ELSE nick_key END
+        ORDER BY score DESC, COALESCE(avg_ms, 999999999), created_at, id) AS rn
+      FROM game.run WHERE hidden = 0 AND mode = ${opts.mode} AND created_at >= ${since}
+    ) SELECT * FROM best WHERE rn = 1
+    ORDER BY score DESC, COALESCE(avg_ms, 999999999), created_at, id LIMIT ${Math.floor(opts.limit)}`;
+  const [count] = await sql`SELECT COUNT(*)::int AS n FROM game.run WHERE hidden = 0 AND mode = ${opts.mode} AND created_at >= ${since}`;
   return {
-    scope: opts.scope,
-    mode: opts.mode,
-    rows: rows.map<LeaderboardRow>((r, i) => ({
-      rank: i + 1,
-      id: r.id,
-      nick: r.nick,
-      score: r.score,
-      correct: r.correct,
-      total: r.total,
-      avgMs: r.avg_ms,
-      createdAt: r.created_at,
-    })),
-    totalPlayers: n,
-    generatedAt: new Date().toISOString(),
+    scope: opts.scope, mode: opts.mode, totalPlayers: count.n, generatedAt: new Date().toISOString(),
+    rows: rows.map((r, i) => ({ rank: i + 1, id: r.id, nick: r.nick, score: r.score,
+      correct: r.correct, total: r.total, avgMs: r.avg_ms, createdAt: r.created_at.toISOString() })),
   };
 }
 
-export function getStats(opts: { scope: Scope; mode: GameMode; score?: number }): StatsResponse {
-  const db = getDb();
+export async function getStats(opts: { scope: Scope; mode: GameMode; score?: number }): Promise<StatsResponse> {
+  const sql = getDb();
   const since = scopeSince(opts.scope);
-  const p = { mode: opts.mode, since };
-
-  const scores = (
-    db
-      .prepare(`SELECT score FROM run WHERE hidden = 0 AND mode = @mode AND created_at >= @since ORDER BY score`)
-      .all(p) as { score: number }[]
-  ).map((r) => r.score);
-
-  const total = scores.length;
-  const median =
-    total === 0 ? null : total % 2 ? scores[(total - 1) / 2] : Math.round((scores[total / 2 - 1] + scores[total / 2]) / 2);
-
-  let percentile: number | null = null;
-  if (opts.score !== undefined && total > 0) {
-    const lower = scores.filter((s) => s < opts.score!).length;
-    percentile = Math.round((100 * lower) / total);
-  }
-
-  const acc = db
-    .prepare(
-      `SELECT AVG(100.0 * correct / total) AS a FROM run
-       WHERE hidden = 0 AND mode = @mode AND created_at >= @since AND total > 0`,
-    )
-    .get(p) as { a: number | null };
-
-  const questions = (
-    db
-      .prepare(
-        `SELECT a.question_id AS questionId, COUNT(*) AS attempts,
-                ROUND(100.0 * AVG(a.correct)) AS correctRate,
-                ROUND(AVG(CASE WHEN a.correct = 1 THEN a.reaction_ms END)) AS avgMs
-         FROM answer a JOIN run r ON r.id = a.run_id
-         WHERE r.hidden = 0 AND r.mode = @mode AND r.created_at >= @since
-         GROUP BY a.question_id
-         ORDER BY correctRate ASC`,
-      )
-      .all(p) as QuestionStat[]
-  ).map((q) => ({ ...q, correctRate: Number(q.correctRate), avgMs: q.avgMs === null ? null : Number(q.avgMs) }));
-
+  const [summary] = await sql`
+    SELECT COUNT(*)::int AS total, MAX(score) AS best,
+      percentile_cont(0.5) WITHIN GROUP (ORDER BY score) AS median,
+      AVG(100.0 * correct / NULLIF(total, 0)) AS accuracy,
+      COUNT(*) FILTER (WHERE score < ${opts.score ?? null})::int AS lower
+    FROM game.run WHERE hidden = 0 AND mode = ${opts.mode} AND created_at >= ${since}`;
+  const questions = await sql`
+    SELECT a.question_id AS "questionId", COUNT(*)::int AS attempts,
+      ROUND(100.0 * AVG(a.correct))::int AS "correctRate",
+      ROUND(AVG(CASE WHEN a.correct = 1 THEN a.reaction_ms END))::int AS "avgMs"
+    FROM game.answer a JOIN game.run r ON r.id = a.run_id
+    WHERE r.hidden = 0 AND r.mode = ${opts.mode} AND r.created_at >= ${since}
+    GROUP BY a.question_id ORDER BY "correctRate" ASC`;
   return {
-    scope: opts.scope,
-    total,
-    percentile,
-    median,
-    best: total ? scores[total - 1] : null,
-    avgAccuracy: acc.a === null ? null : Math.round(acc.a),
-    questions,
+    scope: opts.scope, total: summary.total, best: summary.best,
+    median: summary.median === null ? null : Math.round(Number(summary.median)),
+    avgAccuracy: summary.accuracy === null ? null : Math.round(Number(summary.accuracy)),
+    percentile: opts.score !== undefined && summary.total ? Math.round(100 * summary.lower / summary.total) : null,
+    questions: questions.map(q => ({ questionId: q.questionId, attempts: q.attempts, correctRate: q.correctRate, avgMs: q.avgMs })),
   };
 }
 
-/* ───────────────────────────── admin ───────────────────────────── */
-
-export function listRuns(limit = 100) {
-  return getDb()
-    .prepare(
-      `SELECT id, nick, mode, score, correct, total, avg_ms AS avgMs, device, created_at AS createdAt, hidden
-       FROM run ORDER BY created_at DESC LIMIT ?`,
-    )
-    .all(limit);
+export async function listRuns(limit = 100) {
+  const sql = getDb();
+  return sql`SELECT id, nick, mode, score, correct, total, avg_ms AS "avgMs", device, created_at AS "createdAt", hidden
+    FROM game.run ORDER BY created_at DESC, id LIMIT ${Math.floor(limit)}`;
 }
-
-export function setHidden(id: string, hidden: boolean): boolean {
-  const info = getDb().prepare('UPDATE run SET hidden = ? WHERE id = ?').run(hidden ? 1 : 0, id);
-  return info.changes > 0;
+export async function setHidden(id: string, hidden: boolean): Promise<boolean> {
+  const sql = getDb();
+  const rows = await sql`UPDATE game.run SET hidden = ${hidden ? 1 : 0} WHERE id = ${id} RETURNING id`;
+  return rows.length > 0;
 }
-
-/** Günü sıfırla: bugünkü kayıtları SİLMEZ, gizler (geri alınabilir). */
-export function hideToday(): number {
-  return getDb()
-    .prepare('UPDATE run SET hidden = 1 WHERE created_at >= ? AND hidden = 0')
-    .run(scopeSince('today')).changes;
+export async function hideToday(): Promise<number> {
+  const sql = getDb();
+  const rows = await sql`UPDATE game.run SET hidden = 1 WHERE created_at >= ${scopeSince('today')} AND hidden = 0`;
+  return rows.count;
 }
-
-export function exportCsv(): string {
-  const rows = getDb()
-    .prepare(
-      `SELECT id, nick, mode, score, correct, total, avg_ms, max_streak, device, created_at, received_at, hidden
-       FROM run ORDER BY created_at`,
-    )
-    .all() as Record<string, unknown>[];
+export async function exportCsv(): Promise<string> {
+  const sql = getDb();
+  const rows = await sql`SELECT * FROM game.run ORDER BY created_at, id`;
   const cols = ['id', 'nick', 'mode', 'score', 'correct', 'total', 'avg_ms', 'max_streak', 'device', 'created_at', 'received_at', 'hidden'];
   const esc = (v: unknown) => {
-    const s = v === null || v === undefined ? '' : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    const s = v instanceof Date ? v.toISOString() : v == null ? '' : String(v);
+    return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  return [cols.join(','), ...rows.map((r) => cols.map((c) => esc(r[c])).join(','))].join('\n');
+  return [cols.join(','), ...rows.map(r => cols.map(c => esc(r[c])).join(','))].join('\n');
 }

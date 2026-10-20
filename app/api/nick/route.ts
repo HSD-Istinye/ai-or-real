@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   try {
     const nick = normalizeNick(body.nick);
     if (nick === '???') return jsonError(400, 'Lütfen bir isim yaz', 'nick_empty');
-    if (body.mine !== true && isNickTakenToday(nick)) {
+    if (body.mine !== true && await isNickTakenToday(nick)) {
       return jsonError(409, 'Bu isim bugün alınmış, başka bir isim dene', 'nick_taken');
     }
     return NextResponse.json({ ok: true, nick });

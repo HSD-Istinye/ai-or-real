@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     return jsonError(400, 'Geçersiz JSON');
   }
   try {
-    const res = insertRun(body);
+    const res = await insertRun(body);
     return NextResponse.json(res, { status: res.duplicate ? 200 : 201 });
   } catch (err) {
     return handleError(err);

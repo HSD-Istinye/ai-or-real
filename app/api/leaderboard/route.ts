@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   try {
     const q = new URL(req.url).searchParams;
     const limit = Math.min(100, Math.max(1, Number(q.get('limit')) || 10));
-    const data = getLeaderboard({ scope: parseScope(q.get('scope')), mode: parseMode(q.get('mode')), limit });
+    const data = await getLeaderboard({ scope: parseScope(q.get('scope')), mode: parseMode(q.get('mode')), limit });
     return NextResponse.json(data, { headers: { 'Cache-Control': 'no-store' } });
   } catch (err) {
     return handleError(err);

@@ -18,14 +18,39 @@ export default function HomePage() {
       <header className="home-nav">
         <Link href="/" className="home-brand" aria-label={h.brandAria}>
           <span className="home-brand-mark"><Sparkles size={19} /></span>
-          <span>spot the <strong>ai</strong></span>
+          <span lang="en">SPOT THE <strong>AI</strong></span>
         </Link>
-
+        <div className="home-nav-right">
+          <span className="home-nav-note">{h.navNote}</span>
+          <LangToggle />
+          <div className="home-follow-qr">
+            <Image
+              src="/images/hsdistinye.svg"
+              alt={h.qrAlt}
+              width={176}
+              height={176}
+              unoptimized
+            />
+            <span>{h.qrText}</span>
+          </div>
+        </div>
       </header>
 
       <section className="home-hero" aria-labelledby="home-title">
         <div className="home-hero-copy">
-
+          <div className="home-kicker"><span /> {h.kicker}</div>
+          <h1 id="home-title">{h.title1}<br /><span>{h.title2}</span></h1>
+          <p className="home-intro">{h.intro}</p>
+          <div className="home-actions">
+            <Link href="/start" className="home-play-link">
+              <Button className="home-play-button" variant="primary" size="lg" rightIcon={<ArrowRight size={23} />}>
+                {h.play}
+              </Button>
+            </Link>
+            <span className="home-time-note"><Timer size={15} /> {h.timeNote(ROUNDS)}</span>
+            <Link href="/leaderboard" className="home-how-link" style={{ marginTop: 0 }}>
+              <Trophy size={15} /> {h.leaderboard}
+            </Link>
           </div>
           <a className="home-how-link" href="#nasil-oynanir">
             {h.how} <ArrowDown size={15} />

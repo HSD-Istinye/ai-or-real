@@ -1,6 +1,6 @@
 # AI or Real? 🤖📷
 
-**AI or Real? (Spot the AI)**, gerçek fotoğrafları yapay zekâ tarafından üretilmiş görsellerden ayırt etmeye çalıştığınız, skorların canlı bir liderlik tablosuna yazıldığı bir web oyunudur. **Tek bir bilgisayarda**, **internet olmadan** çalışır: oyuncular bilgisayarda fare ya da klavye ile oynar, liderlik tablosu aynı bilgisayarda ya da bağlı ikinci bir ekranda canlı görünür.
+**AI or Real? (Spot the AI)**, gerçek fotoğrafları yapay zekâ tarafından üretilmiş görsellerden ayırt etmeye çalıştığınız, skorların canlı bir liderlik tablosuna yazıldığı bir web oyunudur. **Vercel + Supabase** üzerinde internet bağlantısıyla çalışır: oyuncular bilgisayarda fare ya da klavye ile oynar, liderlik tablosu aynı bilgisayarda ya da bağlı ikinci bir ekranda canlı görünür.
 
 Her turda kısa bir "Hazır ol…" beklemesinden sonra iki görsel **aynı anda** belirir: biri gerçek, diğeri yapay zekâ ürünü. Oyuncu süre bitmeden AI olanı **fare** ya da **klavye (← / →)** ile seçer. Doğru ve hızlı cevaplar, art arda doğru bilme serisiyle birlikte daha fazla puan kazandırır. Oyuncu başlamadan önce ismini girer; oyun bitince skoru otomatik kaydedilir ve liderlik tablosunda kendi sırasını görür.
 
@@ -26,7 +26,7 @@ Her turda kısa bir "Hazır ol…" beklemesinden sonra iki görsel **aynı anda*
 
 | Araç | Sürüm | Not |
 |---|---|---|
-| **Node.js** | **20.x veya 22.x LTS** | `node -v` ile kontrol edin. Çok yeni (tek sayılı) sürümlerde `better-sqlite3` derleme hatası verebilir. |
+| **Node.js** | **22.x LTS önerilir** | `node -v` ile kontrol edin. |
 | **npm** | Node ile gelir | |
 | **Git** | herhangi | |
 
@@ -37,14 +37,15 @@ Her turda kısa bir "Hazır ol…" beklemesinden sonra iki görsel **aynı anda*
 git clone https://github.com/HSD-Istinye/ai-or-real.git
 cd ai-or-real
 
-# 2) Paketleri yükleyin (better-sqlite3 dahil)
+# 2) Paketleri yükleyin (Postgres.js dahil)
 npm install
 
-# 3) Ortam dosyasını oluşturun ve ADMIN_TOKEN'ı değiştirin
+# 3) Ortam dosyasını oluşturun; DATABASE_URL ve ADMIN_TOKEN değerlerini ayarlayın
 copy .env.example .env.local      # Windows
 # cp .env.example .env.local      # macOS / Linux
 
-# 4) (İsteğe bağlı) Liderlik tablosunu sahte verilerle doldurun
+# 4) Önce Supabase SQL Editor içinde lib/server/schema.sql dosyasını çalıştırın.
+# 5) (İsteğe bağlı, sadece test veritabanında) Deneme sıralama verisi ekleyin
 npm run seed
 ```
 
@@ -54,9 +55,9 @@ npm run seed
 |---|---|
 | `ADMIN_TOKEN` | `/admin` paneline giriş şifresi. Boşsa admin kapalıdır. |
 | `NEXT_PUBLIC_DEVICE_ID` | Birden fazla laptop kullanılırsa her birine farklı isim verin (`stand-1`, `stand-2`). |
-| `DB_PATH` | (İsteğe bağlı) Veritabanı dosyasının yeri. Varsayılan `data/game.db`. |
+| `DATABASE_URL` | Supabase transaction pooler PostgreSQL bağlantısı; yalnızca sunucuda kullanılır. |
 
-Veritabanı (`data/game.db`) ilk API isteğinde **otomatik oluşur**; elle bir şey kurmanıza gerek yoktur. Bu dosya ve `.env.local` git'e girmez.
+İlk kurulumda `lib/server/schema.sql` dosyasını Supabase SQL Editor içinde çalıştırın. Ayrıntılar: [Vercel + Supabase kurulumu](DEPLOYMENT.md). `.env.local` ve yerel yedekler Git dışında tutulur.
 
 ### Geliştirme
 
@@ -81,7 +82,7 @@ npm run start
 | `http://localhost:3000/leaderboard?tv=1` | TV / ikinci ekran için liderlik tablosu (butonsuz) |
 | `http://localhost:3000/admin` | Admin paneli |
 
-Her şey aynı bilgisayarda çalışır; internet veya Wi-Fi gerekmez. Tabloyu ikinci bir ekranda göstermek için o ekranda `/leaderboard?tv=1` adresini tam ekran (F11) açmanız yeterli.
+Skor kaydı ve sıralama için Supabase bağlantısı gerekir. Tabloyu ikinci bir ekranda göstermek için o ekranda `/leaderboard?tv=1` adresini tam ekran (F11) açmanız yeterli.
 
 ### Komutlar
 
@@ -163,7 +164,7 @@ Görseller belirmeden önce basmak "Çok erken!" uyarısı verir ve bekleme baş
 | Dil | **TypeScript** | Oyun ve API verileri tip güvenli |
 | Stil | **CSS** (`app/globals.css`) | Tema değişkenleri tek yerde |
 | Backend | **Next.js Route Handlers** (`app/api/**`) | Ayrı sunucu yok; oyun ve API tek komutla çalışır |
-| Veritabanı | **SQLite** (`better-sqlite3`) | Kurulum yok, tek dosya, internetsiz; yedek = dosyayı kopyalamak |
+| Veritabanı | **Supabase PostgreSQL** (`postgres`) | Kalıcı skorlar, transaction pooler, sunucu üzerinden erişim |
 | İçerik | **JSON** (`data/questions.json`) + `public/images/` | Soru ve görseller |
 
 ---
@@ -171,7 +172,7 @@ Görseller belirmeden önce basmak "Çok erken!" uyarısı verir ve bekleme baş
 ## 🏗️ Teknik Mimari
 
 ```text
-BİLGİSAYAR (localhost:3000, internet gerekmez)
+VERCEL / YEREL NEXT.JS SUNUCUSU (Supabase için internet gerekir)
 ┌──────────────────────── Next.js (tek süreç) ────────────────────────┐
 │                                                                     │
 │  UI LAYER (tarayıcı)                                                │
@@ -191,7 +192,7 @@ BİLGİSAYAR (localhost:3000, internet gerekmez)
 │  SERVER (lib/server/*) — doğrulama, skoru yeniden hesaplama, sorgu  │
 │        │                                                            │
 │        ▼                                                            │
-│  DATA  data/game.db (SQLite)  data/questions.json  public/images    │
+│  DATA  Supabase PostgreSQL  data/questions.json  public/images    │
 └─────────────────────────────────────────────────────────────────────┘
 
  Ekran 1  → oyun (fare veya klavye)
@@ -257,7 +258,7 @@ ai-or-real/
 │
 ├── data/
 │   ├── questions.json            # soru havuzu
-│   └── game.db                   # liderlik veritabanı (otomatik, git'e girmez)
+│   └── backups/                  # isteğe bağlı JSON yedekleri (git'e girmez)
 │
 ├── public/images/questions/Q001/{real,ai}.webp …
 ├── scripts/
@@ -322,7 +323,7 @@ Sonuç ekranında doğruluk oranına göre unvan verilir: 🌱 Acemi Meraklı �
 3. **Basma anı:** fare için `pointerdown` (tuş **basıldığı** an; `click` bırakınca tetiklenir ve +80–150 ms ekler), klavye için `keydown` olayının `event.timeStamp` değeri kullanılır.
 4. **Süre = basma anı − t0.** Zamanlama React state'inde değil ref'lerde tutulur; ekranın yeniden çizilmesi ölçümü etkilemez.
 
-> Monitör ve fare/klavye gecikmesi (~20–40 ms) ölçülemez; ama herkes aynı bilgisayarda oynadığı için sıralama adildir.
+> Monitör ve fare/klavye gecikmesi (~20–40 ms) ölçülemez; çevrimiçi oyuncuların cihazları farklı olabileceğinden bu farklar sıralamayı etkileyebilir.
 
 ### Sunucu doğrulaması
 
@@ -383,9 +384,9 @@ GET  /api/admin/export?token=…                 CSV
 - **İsim:** oyuna başlamadan önce `/start` ekranında sorulur; isim girilmeden `/game` açılmaz. En fazla 20 karakter (TV tablosuna sığsın); harf, rakam, boşluk ve `. _ - '` kullanılabilir, en az bir harf şart. İsim oyun boyunca tarayıcı sekmesinde (`sessionStorage`) tutulur; "Yeni Oyuncu" butonu sıfırlar.
 - **Kayıt:** oyun bitince skor bu isimle **otomatik** kaydedilir, ayrıca bir şey sormaz. Sunucu ismi oyun sonunda yine de reddederse skor kaybolmaz, "İsimsiz" olarak kaydedilir.
 - **Uygunsuz isim filtresi** (`lib/server/blocklist.ts`): isim ekranında anında uyarı verir; kelime ve kök kontrolü yapar, "s1kt1r" gibi rakamlı yazımları yakalar, "Işık" gibi masum isimleri engellemez. Kaçanlar `/admin`'den gizlenir.
-- **"Bugün"** sunucu bilgisayarının saatine göre gece yarısından itibaren sayılır.
+- **"Bugün"** Europe/Istanbul saat diliminde gece yarısından itibaren sayılır.
 - **Offline dayanıklılık:** skor önce tarayıcıya (`localStorage`) yazılır, sonra gönderilir. Sunucu kapalıysa oyuncu "bağlantı gelince eklenecek" mesajı görür; `QueueFlusher` 10 sn'de bir tekrar dener. Aynı `id` sayesinde çift kayıt oluşmaz.
-- **Şema değişikliği:** eski veritabanı dosyaları sunucu açılırken otomatik güncellenir (`lib/server/db.ts` → `migrate`). Yeni sütun eklerseniz oraya bir adım ekleyin.
+- **Şema değişikliği:** Supabase SQL Editor üzerinden kontrollü SQL migration çalıştırın. Uygulama açılışında otomatik tablo oluşturulmaz.
 
 ---
 

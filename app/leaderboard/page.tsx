@@ -7,13 +7,13 @@ import Button from '@/components/ui/Button';
 import { getLeaderboard } from '@/lib/net/api';
 import { LeaderboardResponse, Scope } from '@/types/api';
 import LeaderboardTable from '@/components/leaderboard/LeaderboardTable';
-import { FixedLang, useT } from '@/lib/i18n';
+import { useT } from '@/lib/i18n';
 
 /**
  * Büyük ekran / TV liderlik tablosu.
  * - 3 sn'de bir yenilenir (SSE gerekmez; ileride /api/events eklenebilir).
- * - URL: /leaderboard?scope=alltime&limit=15&tv=1  (tv=1 → butonları gizler, her zaman Türkçe)
- * - tv=1 olmadan (oyundan açılınca) seçili dili izler.
+ * - URL: /leaderboard?scope=alltime&limit=15&tv=1  (tv=1 → butonları gizler)
+ * - Her iki görünüm de ana sayfada seçilen dili izler.
  */
 const REFRESH_MS = 3000;
 
@@ -22,14 +22,7 @@ export default function LeaderboardPage() {
   useEffect(() => {
     setTv(new URLSearchParams(window.location.search).get('tv') === '1');
   }, []);
-  // TV ekranı aynı tarayıcıda açık olabilir; oyuncu dil değiştirince TV değişmesin
-  return tv ? (
-    <FixedLang lang="tr">
-      <LeaderboardView tv />
-    </FixedLang>
-  ) : (
-    <LeaderboardView tv={false} />
-  );
+  return <LeaderboardView tv={tv} />;
 }
 
 function LeaderboardView({ tv }: { tv: boolean }) {

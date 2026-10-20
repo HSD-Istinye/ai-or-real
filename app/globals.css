@@ -519,10 +519,9 @@ body::after {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 10px;
-  border-radius: 16px;
-  background: #fff;
-  color: #30323d;
+  padding: 0;
+  background: transparent;
+  color: var(--text-primary);
   font-size: 0.8rem;
   font-weight: 700;
   text-align: center;
@@ -533,6 +532,9 @@ body::after {
   width: 176px;
   height: 176px;
   object-fit: contain;
+  padding: 10px;
+  border: 3px solid #1a1a1a;
+  border-radius: 14px;
 }
 
 .home-time-note,
@@ -1032,14 +1034,16 @@ body::after {
 
   .home-follow-qr {
     gap: 4px;
-    padding: 6px;
-    border-radius: 12px;
+    padding: 0;
     font-size: 0.62rem;
   }
 
   .home-follow-qr img {
     width: 108px;
     height: 108px;
+    padding: 6px;
+    border-width: 2px;
+    border-radius: 10px;
   }
 
   .home-play-link,
@@ -1423,5 +1427,170 @@ body::after {
   .image-option {
     width: 100%;
     flex: 1 1 auto !important;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Ana sayfa yerleşim uyumu: renk ve fontlar aynı, yalnızca boyut,
+   hizalama ve okunurluk düzenlendi.
+   ------------------------------------------------------------------ */
+.home-nav {
+  align-items: center;
+  gap: 16px;
+}
+
+.home-brand {
+  white-space: nowrap;
+}
+
+.home-nav-right {
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.home-nav-right > :not(.home-follow-qr) {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+.home-nav-note {
+  margin-top: 10px !important;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.home-follow-qr {
+  gap: 6px;
+  font-size: 0.72rem;
+  color: #fff;
+}
+
+.home-follow-qr img {
+  width: 112px;
+  height: 112px;
+  padding: 7px;
+  border-width: 2px;
+  border-radius: 12px;
+}
+
+.home-hero {
+  align-items: start;
+  margin-top: 6px;
+}
+
+/* QR kodunun altından başlasın */
+.home-demo {
+  margin-top: 112px;
+}
+
+.home-play-link {
+  flex-basis: 100%;
+}
+
+.home-actions {
+  gap: 24px 22px;
+  margin-top: 32px;
+}
+
+.home-play-link .home-play-button {
+  min-height: 80px;
+  padding: 22px 54px !important;
+  border-radius: 22px;
+  font-size: 1.8rem !important;
+  font-weight: 800 !important;
+  gap: 16px;
+  white-space: nowrap;
+  border: 2px solid rgba(255, 255, 255, 0.7) !important;
+  box-shadow:
+    0 0 0 6px rgba(224, 214, 255, 0.18),
+    0 14px 34px rgba(31, 38, 49, 0.35) !important;
+  transition: transform 180ms ease, box-shadow 180ms ease !important;
+}
+
+.home-play-link .home-play-button:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow:
+    0 0 0 8px rgba(224, 214, 255, 0.28),
+    0 20px 44px rgba(31, 38, 49, 0.42) !important;
+}
+
+.home-play-link .home-play-button svg {
+  transition: transform 180ms ease;
+}
+
+.home-play-link .home-play-button:hover svg {
+  transform: translateX(4px);
+}
+
+.home-time-note {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.home-actions .home-how-link,
+.home-how-link {
+  font-size: 0.85rem;
+}
+
+.home-hero-copy > .home-how-link {
+  margin-top: 22px;
+}
+
+.home-footer,
+.home-footer span,
+.home-footer span:first-child {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+@media (max-width: 640px) {
+  .home-nav {
+    flex-wrap: nowrap;
+  }
+
+  .home-nav-right {
+    position: static;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .home-nav-right > :not(.home-follow-qr) {
+    align-self: center;
+    margin-top: 0;
+  }
+
+  .home-demo {
+    margin-top: 0;
+  }
+
+  .home-follow-qr {
+    font-size: 0.6rem;
+    gap: 4px;
+  }
+
+  .home-follow-qr img {
+    width: 84px;
+    height: 84px;
+    padding: 5px;
+  }
+
+  .home-hero {
+    margin-top: 0;
+  }
+
+  .home-hero h1 {
+    font-size: clamp(2.3rem, 10.5vw, 3.4rem);
+  }
+
+  .home-actions {
+    margin-top: 22px;
+  }
+
+  .home-play-link,
+  .home-play-link .home-play-button {
+    width: 100%;
+  }
+
+  .home-play-link .home-play-button {
+    min-height: 66px;
+    padding: 18px 28px !important;
+    font-size: 1.45rem !important;
   }
 }

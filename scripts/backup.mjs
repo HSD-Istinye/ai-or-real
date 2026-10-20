@@ -1,29 +1,17 @@
-/**
- * Veritabanının anlık yedeğini alır (sunucu açıkken de güvenli).
- *
- *   npm run backup                 → data/backups/game-2026-10-02_14-30.db
- *   npm run backup -- E:\yedek     → yedeği USB'ye / başka klasöre yazar
- */
-import Database from 'better-sqlite3';
-import fs from 'node:fs';
+import { connect } from './db.mjs';
+import fs from 'node:fs/promises';
 import path from 'node:path';
-
-const root = process.cwd();
-const dbPath = process.env.DB_PATH || path.join(root, 'data', 'game.db');
-if (!fs.existsSync(dbPath)) {
-  console.error(`Veritabanı bulunamadı: ${dbPath}`);
-  process.exit(1);
-}
-
-const targetDir = process.argv[2] || path.join(root, 'data', 'backups');
-fs.mkdirSync(targetDir, { recursive: true });
-
-const d = new Date();
-const pad = (n) => String(n).padStart(2, '0');
-const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
-const target = path.join(targetDir, `game-${stamp}.db`);
-
-const db = new Database(dbPath, { readonly: true });
-await db.backup(target);
-db.close();
-console.log(`💾 Yedek alındı → ${target}`);
+const sql = connect();
+try {
+  const snapshot = await sql.begin('isolation level repeatable read read only', async tx => ({
+    version: 1,
+    createdAt: new Date().toISOString(),
+    runs: await tx`SELECT * FROM game.run ORDER BY id`,
+    answers: await tx`SELECT * FROM game.answer ORDER BY run_id, idx`,
+  }));
+  const dir = path.resolve(process.argv[2] || 'data/backups');
+  await fs.mkdir(dir, { recursive: true });
+  const file = path.join(dir, `game-${Date.now()}.json`);
+  await fs.writeFile(file, JSON.stringify(snapshot, null, 2), { flag: 'wx' });
+  console.log(`Oyun ve cevap yedeği: ${file}`);
+} finally { await sql.end(); }

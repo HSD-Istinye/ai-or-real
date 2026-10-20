@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json().catch(() => null)) as { id?: unknown; hidden?: unknown } | null;
     if (!body || typeof body.id !== 'string') return jsonError(400, 'id gerekli');
-    const ok = setHidden(body.id, body.hidden !== false);
+    const ok = await setHidden(body.id, body.hidden !== false);
     return ok ? NextResponse.json({ ok: true }) : jsonError(404, 'Kayıt bulunamadı');
   } catch (err) {
     return handleError(err);

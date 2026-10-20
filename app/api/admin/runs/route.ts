@@ -11,7 +11,7 @@ export async function GET(req: Request) {
   if (denied) return denied;
   try {
     const limit = Math.min(1000, Math.max(1, Number(new URL(req.url).searchParams.get('limit')) || 100));
-    return NextResponse.json({ ok: true, rows: listRuns(limit) });
+    return NextResponse.json({ ok: true, rows: await listRuns(limit) });
   } catch (err) {
     return handleError(err);
   }
