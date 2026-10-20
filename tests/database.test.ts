@@ -78,6 +78,23 @@ test('PostgreSQL schema, scoring, duplicate submission, ranking, stats and admin
     await db.exec('SET ROLE anon');
     await assert.rejects(() => db.query('SELECT * FROM game.run'), /permission denied/);
     await db.exec('RESET ROLE');
+    await db.exec(readFileSync('lib/server/nickname-schema.sql', 'utf8'));
+    const { reserveNickname } = await import('../lib/server/nicknames');
+    const ownerA = 'a'.repeat(64), ownerB = 'b'.repeat(64);
+    const reserved = await Promise.all([
+      reserveNickname('ÖZGÜR', ownerA), reserveNickname('özgür', ownerB),
+    ]);
+    assert.equal(reserved.filter(Boolean).length, 1);
+    const winner = reserved[0] ? ownerA : ownerB;
+    const loser = reserved[0] ? ownerB : ownerA;
+    assert.equal(await reserveNickname('özgür', winner), true);
+    assert.equal(await reserveNickname('özgür', loser), false);
+    assert.equal(await reserveNickname('özgür', loser, new Date(Date.now() + 86400000)), true);
+    await assert.rejects(() => api.insertRun(payload('özgür'), loser), /isim bugün alınmış/);
+    const ownRun = payload('özgür');
+    await api.insertRun(ownRun, winner);
+    assert.equal((await api.insertRun(ownRun, winner)).duplicate, true);
+    assert.equal(await reserveNickname('özgür', loser), false);
     await db.exec(readFileSync('lib/server/access-schema.sql', 'utf8'));
     const gate = await import('../lib/server/access');
     const firstAccess = await gate.createAccess();

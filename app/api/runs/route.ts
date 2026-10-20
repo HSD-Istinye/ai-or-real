@@ -1,3 +1,5 @@
+import { cookies } from 'next/headers';
+import { ACCESS_COOKIE } from '@/lib/server/access';
 import { requireGameAccess } from '@/lib/server/access-http';
 import { NextResponse } from 'next/server';
 import { insertRun } from '@/lib/server/runs';
@@ -21,7 +23,7 @@ export async function POST(req: Request) {
     return jsonError(400, 'Geçersiz JSON');
   }
   try {
-    const res = await insertRun(body);
+    const res = await insertRun(body, (await cookies()).get(ACCESS_COOKIE)?.value ?? '');
     return NextResponse.json(res, { status: res.duplicate ? 200 : 201 });
   } catch (err) {
     return handleError(err);

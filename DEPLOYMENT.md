@@ -130,3 +130,12 @@ Supabase SQL Editor içinde çalıştırılmalıdır. Mevcut veriler silinmez.
 Hedef adres `lib/server/access.ts` içindeki `QR_TARGET` ile değiştirilir.
 Yeni bir ortam değişkeni gerekmez. Bekleyen skorlar QR erişimi sona erdiğinde
 silinmez, erişim tekrar açılınca gönderilir.
+
+## İsim rezervasyonu
+
+`lib/server/nickname-schema.sql` dosyasını Supabase SQL Editor içinde çalıştırın.
+İsim, oyun başlarken gün/isim için benzersiz kayıtla ayrılır; sahiplik HttpOnly
+QR oturumuna bağlanır. İstemcinin `mine` iddiası yetki sağlamaz. Skor gönderimi
+de sahipliği kontrol eder. Aynı tarayıcı oturumundaki sekmeler aynı sahibi
+paylaşır. Yarım bırakılan oyunun ismi de Türkiye saatiyle gün sonuna kadar
+ayrılmış kalır. Skor gizleme veya günü sıfırlama rezervasyonu kaldırmaz.

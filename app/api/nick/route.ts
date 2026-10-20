@@ -1,7 +1,9 @@
 import { requireGameAccess } from '@/lib/server/access-http';
 import { NextResponse } from 'next/server';
 import { normalizeNick } from '@/lib/server/validate';
-import { isNickTakenToday } from '@/lib/server/runs';
+import { reserveNickname } from '@/lib/server/nicknames';
+import { cookies } from 'next/headers';
+import { ACCESS_COOKIE } from '@/lib/server/access';
 import { handleError, jsonError } from '@/lib/server/http';
 
 export const runtime = 'nodejs';
@@ -12,7 +14,7 @@ export const dynamic = 'force-dynamic';
  * 200 { ok: true, nick }  → temizlenmiş isim
  * 400 { ok: false, error, code } → boş / geçersiz karakter / uygunsuz isim
  * 409 { ok: false, error, code: 'nick_taken' } → bu isim bugün başka biri tarafından alınmış
- * mine: true → isim bu tarayıcı oturumunda zaten bu oyuncunundu (kendi ismiyle tekrar oynuyor)
+ * mine alanına güvenilmez; sahiplik sunucudaki oturumla doğrulanır.
  */
 export async function POST(req: Request) {
   const denied = await requireGameAccess();
@@ -22,7 +24,8 @@ export async function POST(req: Request) {
   try {
     const nick = normalizeNick(body.nick);
     if (nick === '???') return jsonError(400, 'Lütfen bir isim yaz', 'nick_empty');
-    if (body.mine !== true && await isNickTakenToday(nick)) {
+    const session = (await cookies()).get(ACCESS_COOKIE)?.value ?? '';
+    if (!await reserveNickname(nick, session)) {
       return jsonError(409, 'Bu isim bugün alınmış, başka bir isim dene', 'nick_taken');
     }
     return NextResponse.json({ ok: true, nick });

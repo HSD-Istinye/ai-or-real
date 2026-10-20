@@ -7,7 +7,7 @@ import { ArrowRight, Trophy, UserRound } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { checkNick, ApiRequestError } from '@/lib/net/api';
 import { getPlayerNick, NICK_INPUT_MAX, sanitizeNickInput, setPlayerNick } from '@/lib/player';
-import { useT } from '@/lib/i18n';
+import { useT, useLang } from '@/lib/i18n';
 
 /**
  * Oyuna başlamadan önce oyuncunun ismini alır.
@@ -17,6 +17,7 @@ import { useT } from '@/lib/i18n';
 export default function StartPage() {
   const router = useRouter();
   const t = useT();
+  const { lang } = useLang();
   const [nick, setNick] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -51,9 +52,9 @@ export default function StartPage() {
         inputRef.current?.focus();
         return;
       }
-      // Sunucuya ulaşılamadı → yine de oyna; isim oyun sonunda kontrol edilir
-      setPlayerNick(trimmed);
-      router.push('/game');
+      // A name must be reserved before play; never bypass a failed request.
+      setError(lang === 'en' ? 'Could not reserve your name. Check your connection and try again.' : 'İsim doğrulanamadı. Bağlantını kontrol edip tekrar dene.');
+      setBusy(false);
     }
   };
 

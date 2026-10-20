@@ -1,7 +1,9 @@
 import 'server-only';
 import { getDb } from './db';
 import { scopeSince } from './day';
-import { getQuestion, parseSubmitRun } from './validate';
+import { nickKey, reserveNickname } from './nicknames';
+export { nickKey } from './nicknames';
+import { getQuestion, parseSubmitRun, ValidationError } from './validate';
 import { checkAnswer } from '@/lib/game/checkAnswer';
 import { TIME_GRACE_MS, timeLimitFor } from '@/lib/game/rules';
 import { GameMode, LeaderboardResponse, Scope, StatsResponse, SubmitRunResponse } from '@/types/api';
@@ -12,9 +14,7 @@ interface RunRow {
   correct: number; total: number; avg_ms: number | null; max_streak: number;
   device: string | null; created_at: Date; received_at: Date; hidden: number;
 }
-export function nickKey(nick: string): string {
-  return nick.toLocaleLowerCase('tr-TR').replace(/\s+/g, ' ').trim();
-}
+
 export async function isNickTakenToday(nick: string): Promise<boolean> {
   if (nick === '???') return false;
   const sql = getDb();
@@ -78,8 +78,11 @@ async function bestRuns(mode: GameMode, since: string) {
 const average = (r: RunRow) => r.avg_ms ?? 999999999;
 const playerKey = (r: RunRow) => r.nick === '???' ? r.id : r.nick_key;
 
-export async function insertRun(body: unknown): Promise<SubmitRunResponse> {
+export async function insertRun(body: unknown, ownerSession?: string): Promise<SubmitRunResponse> {
   const run = parseSubmitRun(body);
+  if (ownerSession !== undefined && !await reserveNickname(run.nick, ownerSession, new Date(run.createdAt))) {
+    throw new ValidationError('Bu isim bugün alınmış, başka bir isim dene', 'nick_taken');
+  }
   const s = scoreRun(run);
   const sql = getDb();
   // ON CONFLICT waits for concurrent inserts. Answers are committed with the run.
