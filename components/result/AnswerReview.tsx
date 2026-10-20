@@ -210,7 +210,6 @@ export default function AnswerReview({
           )}
         </div>
 
-        <div style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{r.keysHint}</div>
       </div>
     </div>,
     document.body,
